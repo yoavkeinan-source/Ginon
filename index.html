@@ -1204,7 +1204,8 @@ function getClientLabel(c){
     3:{bg:'#f3e8ff',color:'#7e22ce'},
     4:{bg:'#ffedd5',color:'#c2410c'}
   };
-  return {text:'קבוע — '+labels[freq],..( colors[freq]||{bg:'#dcfce7',color:'#166534'})};
+  const c2=colors[freq]||{bg:'#dcfce7',color:'#166534'};
+  return {text:'קבוע — '+labels[freq],bg:c2.bg,color:c2.color};
 }
 function getClientRowBg(c){
   if(c.type==='חד פעמי') return '#fff';
