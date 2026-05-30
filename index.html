@@ -312,6 +312,7 @@ tr:last-child td{border-bottom:none;}
         <div class="stat g"><div class="stat-l">💰 נכנס החודש</div><div class="stat-v" id="st-income">0 ₪</div></div>
         <div class="stat"><div class="stat-l">📈 צפוי החודש</div><div class="stat-v" id="st-expected">0 ₪</div></div>
         <div class="stat a"><div class="stat-l">⏳ לא שולם</div><div class="stat-v" id="st-unpaid">0 ₪</div></div>
+        <div class="stat" style="background:#fff1f2;"><div class="stat-l">❌ בוטלו</div><div class="stat-v" id="st-cancelled" style="color:#991b1b;">0</div></div>
         <div class="stat"><div class="stat-l">👤 לקוחות</div><div class="stat-v" id="st-clients">0</div></div>
       </div><!-- /stats-box -->
       <div class="card">
@@ -359,6 +360,8 @@ tr:last-child td{border-bottom:none;}
           <div style="text-align:center;"><div style="font-size:18px;font-weight:900;color:var(--green);" id="cal-income">0 ₪</div><div style="font-size:10px;color:var(--gray4);">נכנס</div></div>
           <div style="text-align:center;"><div style="font-size:18px;font-weight:900;color:#1d4ed8;" id="cal-expected">0 ₪</div><div style="font-size:10px;color:var(--gray4);">צפוי</div></div>
           <div style="text-align:center;"><div style="font-size:18px;font-weight:900;color:var(--red);" id="cal-visits">0</div><div style="font-size:10px;color:var(--gray4);">ביקורים</div></div>
+          <div style="text-align:center;"><div style="font-size:18px;font-weight:900;color:#991b1b;" id="cal-cancelled">0</div><div style="font-size:10px;color:var(--gray4);">בוטלו</div></div>
+          <div style="text-align:center;"><div style="font-size:18px;font-weight:900;color:#92400e;" id="cal-unpaid">0 ₪</div><div style="font-size:10px;color:var(--gray4);">לא שולם</div></div>
         </div>
       </div>
       <div style="display:flex;gap:7px;margin-bottom:10px;">
@@ -1037,17 +1040,19 @@ function nav(id,el){
 function updateStats(){
   const now=new Date();
   const mp=`${now.getFullYear()}-${String(now.getMonth()+1).padStart(2,'0')}`;
-  let income=0,expected=0,unpaid=0;
+  let income=0,expected=0,unpaid=0,cancelled=0;
   Object.entries(D.cal||{}).forEach(([k,evs])=>{
     if(!k.startsWith(mp))return;
     evs.forEach(ev=>{
-      if(ev.isNote||ev.cancelled)return;
+      if(ev.isNote)return;
+      if(ev.cancelled){cancelled++;return;}
       const p=parseFloat((ev.price||'').toString().replace(/[^0-9.]/g,''))||0;
       const prof=parseFloat((ev.profit||'').toString().replace(/[^0-9.]/g,''))||0;
-      if(p>0){
-        expected+=p+prof;
-        if(ev.paid){income+=p+prof;}
-        else unpaid+=p;
+      const total=p+prof;
+      if(total>0){
+        expected+=total;
+        if(ev.paid){income+=total;}
+        else{unpaid+=p;}
       }
     });
   });
@@ -1055,14 +1060,17 @@ function updateStats(){
     if(!j.date||!j.date.startsWith(mp))return;
     const p=parseFloat((j.price||'').toString().replace(/[^0-9.]/g,''))||0;
     if(p>0){
+      expected+=p;
       if(j.paid)income+=p;
-      else expected+=p;
+      else unpaid+=p;
     }
   });
   const fmt=n=>n>0?n.toLocaleString()+' ₪':'0 ₪';
   document.getElementById('st-income').textContent=fmt(income);
   document.getElementById('st-expected').textContent=fmt(expected);
   document.getElementById('st-unpaid').textContent=fmt(unpaid);
+  const sc=document.getElementById('st-cancelled');
+  if(sc)sc.textContent=cancelled;
   document.getElementById('st-clients').textContent=D.clients.length;
 }
 
@@ -1258,23 +1266,30 @@ function renderCal(){
   // Compute monthly stats
   const cy=calDate.getFullYear(),cm=calDate.getMonth();
   const mp=`${cy}-${String(cm+1).padStart(2,'0')}`;
-  let inc=0,exp=0,visits=0;
+  let inc=0,exp=0,visits=0,canc=0,unpaidCal=0;
   Object.entries(D.cal||{}).forEach(([k,evs])=>{
     if(!k.startsWith(mp))return;
     evs.forEach(ev=>{
-      if(ev.isNote||ev.cancelled)return;
+      if(ev.isNote)return;
+      if(ev.cancelled){canc++;return;}
       visits++;
       const p=parseFloat((ev.price||'').toString().replace(/[^0-9.]/g,''))||0;
-      if(p>0){exp+=p;if(ev.paid)inc+=p;}
+      const prof=parseFloat((ev.profit||'').toString().replace(/[^0-9.]/g,''))||0;
+      const total=p+prof;
+      if(total>0){exp+=total;if(ev.paid)inc+=total;else unpaidCal+=p;}
     });
   });
   const fmt=n=>n>0?n.toLocaleString()+' ₪':'0 ₪';
   const ie=document.getElementById('cal-income');
   const xe=document.getElementById('cal-expected');
   const ve=document.getElementById('cal-visits');
+  const ce=document.getElementById('cal-cancelled');
+  const ue=document.getElementById('cal-unpaid');
   if(ie)ie.textContent=_calStatsHidden?'••••':fmt(inc);
   if(xe)xe.textContent=_calStatsHidden?'••••':fmt(exp);
   if(ve)ve.textContent=visits;
+  if(ce)ce.textContent=canc;
+  if(ue)ue.textContent=_calStatsHidden?'••••':fmt(unpaidCal);
   const y=calDate.getFullYear(),m=calDate.getMonth();
   document.getElementById('cal-title').textContent=MONTHS[m]+' '+y;
   const g=document.getElementById('cgrid');g.innerHTML='';
