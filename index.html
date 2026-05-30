@@ -1052,7 +1052,7 @@ function updateStats(){
       if(total>0){
         expected+=total;
         if(ev.paid){income+=total;}
-        else if(ev.done){unpaid+=p;} // רק בוצע אך לא שולם
+        else if(ev.done){unpaid+=p+prof;} // רק בוצע אך לא שולם
       }
     });
   });
@@ -1276,7 +1276,7 @@ function renderCal(){
       const p=parseFloat((ev.price||'').toString().replace(/[^0-9.]/g,''))||0;
       const prof=parseFloat((ev.profit||'').toString().replace(/[^0-9.]/g,''))||0;
       const total=p+prof;
-      if(total>0){exp+=total;if(ev.paid)inc+=total;else if(ev.done)unpaidCal+=p;}
+      if(total>0){exp+=total;if(ev.paid)inc+=total;else if(ev.done)unpaidCal+=total;}
     });
   });
   const fmt=n=>n>0?n.toLocaleString()+' ₪':'0 ₪';
