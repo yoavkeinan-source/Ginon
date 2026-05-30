@@ -326,6 +326,7 @@ tr:last-child td{border-bottom:none;}
 
     <!-- CLIENTS -->
     <div class="sec" id="s-clients">
+      <div id="clients-stats" style="display:flex;flex-wrap:wrap;gap:7px;margin-bottom:11px;"></div>
       <div class="sbar"><input type="text" placeholder="🔍 חיפוש לקוח..." oninput="filterClients(this.value)"><button class="btn btn-g" onclick="openM('m-client')">+</button></div>
       <div class="tw"><table>
         <thead><tr><th>שם</th><th>טלפון</th><th>חוזה</th><th>מחיר קבוע</th><th>תדירות</th><th>חוב</th><th>WA</th><th>🗑</th></tr></thead>
@@ -359,6 +360,9 @@ tr:last-child td{border-bottom:none;}
           <div style="text-align:center;"><div style="font-size:18px;font-weight:900;color:#1d4ed8;" id="cal-expected">0 ₪</div><div style="font-size:10px;color:var(--gray4);">צפוי</div></div>
           <div style="text-align:center;"><div style="font-size:18px;font-weight:900;color:var(--red);" id="cal-visits">0</div><div style="font-size:10px;color:var(--gray4);">ביקורים</div></div>
         </div>
+      </div>
+      <div style="display:flex;justify-content:flex-end;margin-bottom:5px;">
+        <button class="btn btn-gray btn-sm" onclick="toggleCalStats()" id="cal-stats-btn" style="font-size:11px;">👁 הסתר סכומים</button>
       </div>
       <div style="display:flex;gap:7px;margin-bottom:10px;">
         <div class="ps-wrap" style="flex:1;position:relative;">
@@ -1011,7 +1015,8 @@ async function loadCloud(){
   initApp();
 }
 function initApp(){
-  renderClients();renderJobs();renderPlants();renderCal();renderPrices();renderReminders();updateStats();renderDash();
+  if(!D.trimSchedule)D.trimSchedule=[];
+  renderClients();renderJobs();renderPlants();renderCal();renderPrices();renderReminders();updateStats();renderDash();renderTrimList();renderWeek();
 }
 
 // ═══════════════ NAVIGATION ═══════════════
@@ -1140,7 +1145,39 @@ function renderDash(){
 }
 
 // ═══════════════ CLIENTS ═══════════════
+function renderClientsStats(){
+  const total=D.clients.length;
+  const monthly=D.clients.filter(c=>c.type==='חודשי').length;
+  const oneTime=D.clients.filter(c=>c.type==='חד פעמי').length;
+  const quarterly=D.clients.filter(c=>c.type==='רבעוני').length;
+  const freq1=D.clients.filter(c=>c.type==='חודשי'&&(!c.freq||c.freq==1)).length;
+  const freq2=D.clients.filter(c=>c.type==='חודשי'&&c.freq==2).length;
+  const freq3=D.clients.filter(c=>c.type==='חודשי'&&c.freq==3).length;
+  const freq4=D.clients.filter(c=>c.type==='חודשי'&&c.freq==4).length;
+  const box=document.getElementById('clients-stats');
+  if(!box)return;
+  const chip=(label,val,bg,col)=>`<span style="background:${bg};color:${col};padding:4px 10px;border-radius:7px;font-size:12px;font-weight:700;">${label}: <strong>${val}</strong></span>`;
+  box.innerHTML=`
+    <div style="background:#fff;border:1px solid var(--gray3);border-radius:12px;padding:12px 14px;width:100%;">
+      <div style="font-size:12px;font-weight:700;color:var(--gray);margin-bottom:8px;">📊 סיכום לקוחות</div>
+      <div style="display:flex;flex-wrap:wrap;gap:6px;margin-bottom:${monthly>0?'10px':'0'};">
+        ${chip('סה"כ',total,'var(--green3)','var(--green)')}
+        ${monthly?chip('חודשי',monthly,'#eff6ff','#1d4ed8'):''}
+        ${oneTime?chip('חד פעמי',oneTime,'#fff7ed','#c2410c'):''}
+        ${quarterly?chip('רבעוני',quarterly,'#fdf4ff','#7e22ce'):''}
+      </div>
+      ${monthly>0?`<div style="border-top:1px solid var(--gray3);padding-top:8px;display:flex;flex-wrap:wrap;gap:6px;">
+        <span style="font-size:11px;color:var(--gray);margin-left:4px;">תדירות:</span>
+        ${freq1>0?chip('פעם בחודש',freq1,'#f0fdf4','var(--green)'):''}
+        ${freq2>0?chip('פעמיים',freq2,'#eff6ff','#1d4ed8'):''}
+        ${freq3>0?chip('3 פעמים',freq3,'#fdf4ff','#7e22ce'):''}
+        ${freq4>0?chip('כל שבוע',freq4,'#fff7ed','#c2410c'):''}
+      </div>`:''}
+    </div>`;
+}
+
 function renderClients(){
+  renderClientsStats();
   const tb=document.getElementById('ctbody');
   tb.innerHTML=D.clients.map(c=>`<tr>
     <td><strong>${c.name}</strong></td>
@@ -1304,7 +1341,7 @@ function showDay(key,d,m,y,el){
             <div class="vr-desc">${ev.desc||''}</div>
             <div class="vr-time">${ev.time?'🕐 '+ev.time:''}</div>
           </div>
-          <div class="vr-price">${p>0?p.toLocaleString()+' ₪':''}</div>
+          <div class="vr-price">${p>0?p.toLocaleString()+' ₪':''} ${ev.profit&&parseFloat(ev.profit)>0?'<span style="font-size:10px;color:var(--green);font-weight:700;">+'+parseFloat(ev.profit).toLocaleString()+' ₪ רווח</span>':''}</div>
         </div>
         <div class="vr-acts">
           <button class="sbtn done ${ev.done?'on':''}" onclick="togVisit('${key}',${i},'done',this)">${ev.done?'✅ בוצע':'☐ בוצע'}</button>
@@ -1903,6 +1940,15 @@ let tt;
 function toast(msg){const el=document.getElementById('toast-el');el.textContent=msg;el.classList.add('on');clearTimeout(tt);tt=setTimeout(()=>el.classList.remove('on'),3000);}
 
 
+// ═══════════════ CALENDAR STATS TOGGLE ═══════════════
+let _calStatsHidden=false;
+function toggleCalStats(){
+  _calStatsHidden=!_calStatsHidden;
+  const btn=document.getElementById('cal-stats-btn');
+  if(btn)btn.textContent=_calStatsHidden?'🙈 הצג סכומים':'👁 הסתר סכומים';
+  renderCal();renderWeek();
+}
+
 // ═══════════════ MOVE VISIT ═══════════════
 let _moveKey=null,_moveIdx=null;
 function openMoveVisit(key,i){
@@ -1999,64 +2045,91 @@ function toggleStats(){
 let weekDate=new Date();
 function chWeek(d){weekDate.setDate(weekDate.getDate()+d*7);renderWeek();}
 function renderWeek(){
-  const DAYS=['ראשון','שני','שלישי','רביעי','חמישי','שישי','שבת'];
+  const DAYS_FULL=['ראשון','שני','שלישי','רביעי','חמישי','שישי','שבת'];
   const start=new Date(weekDate);
-  start.setDate(start.getDate()-start.getDay()); // Sunday
+  start.setDate(start.getDate()-start.getDay());
   const end=new Date(start);end.setDate(end.getDate()+6);
-  const startStr=`${start.getDate()} ${MONTHS[start.getMonth()]}`;
-  const endStr=`${end.getDate()} ${MONTHS[end.getMonth()]} ${end.getFullYear()}`;
-  document.getElementById('week-title').textContent=`${startStr} — ${endStr}`;
-  let html='';
+  const todayKey=new Date().toISOString().slice(0,10);
+  document.getElementById('week-title').textContent=
+    `${start.getDate()} ${MONTHS[start.getMonth()]} — ${end.getDate()} ${MONTHS[end.getMonth()]} ${end.getFullYear()}`;
+
+  let html='<div style="display:flex;flex-direction:column;gap:10px;">';
   for(let d=0;d<7;d++){
     const day=new Date(start);day.setDate(day.getDate()+d);
     const key=`${day.getFullYear()}-${String(day.getMonth()+1).padStart(2,'0')}-${String(day.getDate()).padStart(2,'0')}`;
     const evs=D.cal[key]||[];
-    const visits=evs.filter(e=>!e.isNote&&!e.cancelled);
+    const visits=evs.filter(e=>!e.isNote);
     const notes=evs.filter(e=>e.isNote);
-    const dayTotal=visits.reduce((s,e)=>s+(parseFloat((e.price||'').toString().replace(/[^0-9.]/g,''))||0),0);
-    const dayPaid=visits.filter(e=>e.paid).reduce((s,e)=>s+(parseFloat((e.price||'').toString().replace(/[^0-9.]/g,''))||0),0);
     const hol=HOLIDAYS[key];
-    const isToday=key===new Date().toISOString().slice(0,10);
+    const isToday=key===todayKey;
     const isSab=d===6;
-    const bgColor=isToday?'var(--green3)':isSab?'#faf5ff':hol?'#fff7ed':'#fff';
-    const borderColor=isToday?'2px solid var(--green2)':isSab?'1px solid #e9d5ff':hol?'1px solid #fed7aa':'1px solid var(--gray3)';
-    html+=`<div style="background:${bgColor};border:${borderColor};border-radius:12px;margin-bottom:9px;overflow:hidden;">
-      <div style="padding:9px 13px;border-bottom:1px solid var(--gray3);display:flex;justify-content:space-between;align-items:center;">
+
+    // Day totals
+    const dayTotal=visits.filter(e=>!e.cancelled).reduce((s,e)=>s+(parseFloat((e.price||'').toString().replace(/[^0-9.]/g,''))||0),0);
+    const dayPaid=visits.filter(e=>e.paid&&!e.cancelled).reduce((s,e)=>s+(parseFloat((e.price||'').toString().replace(/[^0-9.]/g,''))||0),0);
+
+    const headerBg=isToday?'var(--green2)':isSab?'#7c3aed':hol?'var(--amber)':'var(--dark2)';
+    const headerColor='#fff';
+
+    html+=`<div style="border-radius:14px;overflow:hidden;box-shadow:0 2px 8px rgba(0,0,0,.08);">
+      <!-- Day header -->
+      <div style="background:${headerBg};padding:10px 14px;display:flex;align-items:center;justify-content:space-between;">
         <div>
-          <span style="font-size:14px;font-weight:800;">${DAYS[d]}</span>
-          <span style="font-size:12px;color:var(--gray4);margin-right:6px;">${day.getDate()} ${MONTHS[day.getMonth()]}</span>
-          ${hol?`<span style="font-size:11px;color:#c2410c;font-weight:700;">${hol}</span>`:''}
+          <span style="color:${headerColor};font-size:15px;font-weight:800;">${DAYS_FULL[d]}</span>
+          <span style="color:rgba(255,255,255,.75);font-size:12px;margin-right:7px;">${day.getDate()} ${MONTHS[day.getMonth()]}</span>
+          ${hol?`<span style="color:#fef3c7;font-size:11px;font-weight:700;">${hol}</span>`:''}
         </div>
-        <div style="display:flex;align-items:center;gap:8px;">
-          ${dayTotal>0?`<span style="font-size:12px;font-weight:700;color:var(--green);">${dayPaid>0?dayPaid.toLocaleString()+'/':''}${dayTotal.toLocaleString()} ₪</span>`:''}
-          <button class="btn btn-g btn-sm" onclick="window._selDate='${key}';openAddEvent()">+</button>
+        <div style="display:flex;align-items:center;gap:7px;">
+          ${!_calStatsHidden&&dayTotal>0?`<span style="background:rgba(255,255,255,.2);color:#fff;font-size:11px;font-weight:700;padding:3px 8px;border-radius:6px;">${dayPaid?dayPaid.toLocaleString()+'/':''}${dayTotal.toLocaleString()} ₪</span>`:''}
+          <button onclick="window._selDate='${key}';openAddEvent('${key}')" style="background:rgba(255,255,255,.25);border:none;border-radius:6px;padding:4px 9px;color:#fff;font-size:13px;cursor:pointer;font-weight:700;">+</button>
         </div>
       </div>
-      ${notes.map(n=>`<div style="padding:7px 13px;border-bottom:1px solid var(--gray3);background:#fdf4ff;font-size:12px;color:#7e22ce;">📝 ${n.client}</div>`).join('')}
-      ${visits.length?visits.map((ev,vi)=>{
-        const p=parseFloat((ev.price||'').toString().replace(/[^0-9.]/g,''))||0;
-        const bg=ev.paid?'var(--green3)':ev.done?'#eff6ff':'#fff';
-        const status=ev.paid?'💰':'✅'[ev.done-1]||'🟡';
-        return`<div style="padding:9px 13px;border-bottom:1px solid var(--gray3);background:${bg};display:flex;align-items:center;justify-content:space-between;">
-          <div>
-            <span style="font-size:13px;font-weight:700;">${ev.paid?'💰':ev.done?'✅':'🟡'} ${ev.client}</span>
-            <span style="font-size:11px;color:var(--gray4);margin-right:6px;">${ev.time?'🕐'+ev.time:''} ${ev.desc||''}</span>
-          </div>
-          <div style="display:flex;align-items:center;gap:5px;">
-            ${p>0?`<span style="font-size:12px;font-weight:700;color:var(--green);">${p.toLocaleString()} ₪</span>`:''}
-            <button class="btn btn-gray btn-sm" onclick="openEditVisit('${key}',${evs.indexOf(ev)})">✏️</button>
-          </div>
-        </div>`;
-      }).join(''):`<div style="padding:10px 13px;color:var(--gray4);font-size:12px;text-align:center;">${isSab?'שבת':'אין ביקורים'}</div>`}
-      <div style="padding:6px 13px;">
-        <button class="btn btn-gray btn-sm" style="width:100%;font-size:11px;justify-content:center;" onclick="window._selDate='${key}';addNoteToDay('${key}')">📝 הערה</button>
+      <!-- Visits -->
+      <div style="background:#fff;">
+        ${notes.map(n=>`
+          <div style="padding:8px 14px;border-bottom:1px solid var(--gray3);background:#fdf4ff;display:flex;align-items:center;gap:8px;">
+            <span style="font-size:13px;">📝</span>
+            <span style="font-size:12px;color:#7e22ce;font-weight:600;">${n.client}</span>
+          </div>`).join('')}
+        ${visits.length?visits.map(ev=>{
+          const i=evs.indexOf(ev);
+          const p=parseFloat((ev.price||'').toString().replace(/[^0-9.]/g,''))||0;
+          const prof=parseFloat((ev.profit||'').toString().replace(/[^0-9.]/g,''))||0;
+          const bg=ev.cancelled?'#f9fafb':ev.paid?'#f0fdf4':ev.done?'#eff6ff':'#fff';
+          const border=ev.cancelled?'3px solid #d1d5db':ev.paid?'3px solid #86efac':ev.done?'3px solid #93c5fd':'3px solid #fde68a';
+          const statusIcon=ev.cancelled?'❌':ev.paid?'💰':ev.done?'✅':'🟡';
+          return`<div style="padding:10px 14px;border-bottom:1px solid var(--gray3);background:${bg};border-right:${border};${ev.cancelled?'opacity:.65':''}">
+            <div style="display:flex;justify-content:space-between;align-items:flex-start;">
+              <div style="flex:1;">
+                <div style="font-size:13px;font-weight:700;">${statusIcon} ${ev.client}
+                  ${ev.time?`<span style="font-size:11px;color:var(--gray4);font-weight:400;"> 🕐${ev.time}</span>`:''}
+                </div>
+                ${ev.desc?`<div style="font-size:11px;color:var(--gray4);margin-top:2px;">${ev.desc}</div>`:''}
+              </div>
+              <div style="text-align:left;flex-shrink:0;margin-right:8px;">
+                ${p>0?`<div style="font-size:12px;font-weight:700;color:var(--green);">${p.toLocaleString()} ₪</div>`:''}
+                ${!_calStatsHidden&&prof>0?`<div style="font-size:10px;color:#059669;font-weight:700;">+${prof.toLocaleString()} ₪ רווח</div>`:''}
+              </div>
+            </div>
+            ${!ev.cancelled?`<div style="display:flex;gap:5px;margin-top:7px;flex-wrap:wrap;">
+              <button onclick="togVisit('${key}',${i},'done',this)" class="sbtn done ${ev.done?'on':''}">${ev.done?'✅':'☐'} בוצע</button>
+              <button onclick="togVisit('${key}',${i},'paid',this)" class="sbtn paid ${ev.paid?'on':''}">${ev.paid?'💰':'☐'} שולם</button>
+              <button onclick="openEditVisit('${key}',${i})" class="btn btn-gray btn-sm">✏️</button>
+              <button onclick="openMoveVisit('${key}',${i})" class="btn btn-blue btn-sm">📅</button>
+              <button onclick="cancelVisit('${key}',${i})" class="btn btn-amber btn-sm">❌</button>
+            </div>`:`<div style="margin-top:6px;"><button onclick="cancelVisit('${key}',${i})" class="btn btn-gray btn-sm">↩ בטל ביטול</button></div>`}
+          </div>`;
+        }).join(''):`<div style="padding:12px 14px;color:var(--gray4);font-size:12px;text-align:center;">${isSab?'שבת שלום 🕯':'אין ביקורים ביום זה'}</div>`}
+        <div style="padding:6px 10px;background:var(--cream2);">
+          <button onclick="addNoteToDay('${key}')" class="btn btn-gray btn-sm" style="width:100%;justify-content:center;font-size:11px;">📝 הוסף הערה</button>
+        </div>
       </div>
     </div>`;
   }
+  html+='</div>';
   document.getElementById('week-grid').innerHTML=html;
 }
 
-// ═══════════════ TRIM SCHEDULE ═══════════════
 function openTrimSection(){
   const sel=document.getElementById('trim-client-sel');
   if(sel)sel.innerHTML='<option value="">-- בחר לקוח --</option>'+D.clients.map(c=>`<option value="${c.name}">${c.name}</option>`).join('');
@@ -2103,8 +2176,11 @@ function applyTrimSchedule(){
   for(let week=0;week<13;week++){
     D.trimSchedule.forEach(t=>{
       if(week%t.freq!==0)return;
-      const date=new Date(now);
-      date.setDate(date.getDate()+(((t.dayOfWeek-date.getDay())+7)%7)+(week*7));
+      // Find next occurrence of this day of week
+      const base=new Date(now);
+      const daysUntil=((t.dayOfWeek-base.getDay())+7)%7;
+      const date=new Date(base);
+      date.setDate(date.getDate()+daysUntil+(week*7));
       const key=`${date.getFullYear()}-${String(date.getMonth()+1).padStart(2,'0')}-${String(date.getDate()).padStart(2,'0')}`;
       if(!D.cal[key])D.cal[key]=[];
       // Check if already scheduled
@@ -2140,51 +2216,9 @@ function buildMsg(type,name,phone){
   }[type]||'';
 }
 
-// ═══════════════ MATERIALS PROFIT IN STATS ═══════════════
-// Override updateStats to include materials profit
-const _origUpdateStats=updateStats;
-function updateStats(){
-  const now=new Date();
-  const mp=`${now.getFullYear()}-${String(now.getMonth()+1).padStart(2,'0')}`;
-  let income=0,expected=0,unpaid=0,materialProfit=0;
-  Object.entries(D.cal||{}).forEach(([k,evs])=>{
-    if(!k.startsWith(mp))return;
-    evs.forEach(ev=>{
-      if(ev.isNote||ev.cancelled)return;
-      const p=parseFloat((ev.price||'').toString().replace(/[^0-9.]/g,''))||0;
-      const prof=parseFloat((ev.profit||'').toString().replace(/[^0-9.]/g,''))||0;
-      if(p>0){
-        expected+=p;
-        if(ev.paid){income+=p;materialProfit+=prof;}
-        else unpaid+=p;
-      }
-    });
-  });
-  D.jobs.forEach(j=>{
-    if(!j.date||!j.date.startsWith(mp))return;
-    const p=parseFloat((j.price||'').toString().replace(/[^0-9.]/g,''))||0;
-    if(p>0){if(j.paid)income+=p;else expected+=p;}
-  });
-  const fmt=n=>n>0?n.toLocaleString()+' ₪':'0 ₪';
-  const ie=document.getElementById('st-income');
-  const xe=document.getElementById('st-expected');
-  const ue=document.getElementById('st-unpaid');
-  const ce=document.getElementById('st-clients');
-  if(ie)ie.textContent=fmt(income+(materialProfit>0?materialProfit:0));
-  if(xe)xe.textContent=fmt(expected);
-  if(ue)ue.textContent=fmt(unpaid);
-  if(ce)ce.textContent=D.clients.length;
-}
+
 
 // ═══════════════ INIT EXTRAS ═══════════════
-const _origInitApp=initApp;
-function initApp(){
-  _origInitApp();
-  if(!D.trimSchedule)D.trimSchedule=[];
-  renderTrimList();
-  renderWeek();
-}
-
 if('serviceWorker' in navigator) navigator.serviceWorker.register('./sw.js').catch(()=>{});
 </script>
 </body>
