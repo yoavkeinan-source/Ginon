@@ -430,20 +430,27 @@ tr:last-child td{border-bottom:none;}
 
     <!-- TRIM SCHEDULE -->
     <div class="sec" id="s-trim">
-      <div style="background:var(--green3);border:1px solid var(--green4);border-radius:11px;padding:12px;margin-bottom:13px;">
-        <div style="font-size:14px;font-weight:800;color:var(--green);">✂️ סידור ימי גזם</div>
-        <div style="font-size:12px;color:var(--gray4);margin-top:3px;">הגדר תאריכי גזם קבועים — יוכנסו אוטומטית ללוח</div>
-      </div>
-      <div style="background:#fff;border:1px solid var(--gray3);border-radius:12px;margin-bottom:13px;overflow:hidden;">
-        <div style="padding:12px 14px;border-bottom:1px solid var(--gray3);display:flex;justify-content:space-between;align-items:center;">
-          <strong style="font-size:13px;">לקוחות עם תאריכי גזם קבועים</strong>
-          <button class="btn btn-g btn-sm" onclick="openM('m-trim')">+ הוסף</button>
+      <!-- Header -->
+      <div style="background:var(--green3);border:1px solid var(--green4);border-radius:11px;padding:12px 14px;margin-bottom:12px;display:flex;justify-content:space-between;align-items:center;">
+        <div>
+          <div style="font-size:14px;font-weight:800;color:var(--green);">✂️ יומן גזם</div>
+          <div style="font-size:12px;color:var(--gray4);margin-top:2px;">תיעוד ימי גזם ללקוחות בלוח השנה</div>
         </div>
-        <div id="trim-list"><div style="padding:16px;text-align:center;color:var(--gray4);font-size:13px;">לחץ + להוספת לקוח עם תאריך גזם קבוע</div></div>
+        <button class="btn btn-g btn-sm" onclick="openM('m-trim')">+ הוסף</button>
       </div>
-      <button class="btn btn-amber" style="width:100%;justify-content:center;" onclick="applyTrimSchedule()">📅 שבץ את כל ימי הגזם ללוח</button>
-    </div>
 
+      <!-- Tabs: קבועים / חד פעמי -->
+      <div style="display:flex;gap:0;border:1px solid var(--gray3);border-radius:9px;overflow:hidden;margin-bottom:12px;">
+        <button id="trim-tab-fixed" onclick="switchTrimTab('fixed')" style="flex:1;padding:9px;font-size:13px;font-weight:700;border:none;cursor:pointer;background:var(--green2);color:#fff;font-family:'Heebo',sans-serif;">🔁 קבועים</button>
+        <button id="trim-tab-once" onclick="switchTrimTab('once')" style="flex:1;padding:9px;font-size:13px;font-weight:700;border:none;cursor:pointer;background:var(--white);color:var(--gray);font-family:'Heebo',sans-serif;">📅 חד פעמי</button>
+      </div>
+
+      <!-- Fixed schedules list -->
+      <div id="trim-fixed-list"></div>
+
+      <!-- One-time list -->
+      <div id="trim-once-list" style="display:none;"></div>
+    </div>
     <!-- REMINDERS -->
     <div class="sec" id="s-rem">
       <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;">
@@ -1017,7 +1024,7 @@ async function loadCloud(){
 }
 function initApp(){
   if(!D.trimSchedule)D.trimSchedule=[];
-  renderClients();renderJobs();renderPlants();renderCal();renderPrices();renderReminders();updateStats();renderDash();renderTrimList();renderWeek();
+  renderClients();renderJobs();renderPlants();renderCal();renderPrices();renderReminders();updateStats();renderDash();renderWeek();
 }
 
 // ═══════════════ NAVIGATION ═══════════════
@@ -2173,71 +2180,193 @@ function renderWeek(){
   document.getElementById('week-grid').innerHTML=html;
 }
 
+// ═══════════════ TRIM SCHEDULE (יומן גזם) ═══════════════
+let _trimTab='fixed'; // 'fixed' or 'once'
+
 function openTrimSection(){
-  const sel=document.getElementById('trim-client-sel');
-  if(sel)sel.innerHTML='<option value="">-- בחר לקוח --</option>'+D.clients.map(c=>`<option value="${c.name}">${c.name}</option>`).join('');
+  // Populate client selects
+  const opts='<option value="">-- בחר לקוח --</option>'+D.clients.map(c=>`<option value="${c.name}">${c.name}</option>`).join('');
+  const s1=document.getElementById('trim-client-sel');
+  const s2=document.getElementById('trim-once-client');
+  if(s1)s1.innerHTML=opts;
+  if(s2)s2.innerHTML=opts;
+  // Set today as default for once
+  const todayEl=document.getElementById('trim-once-date');
+  if(todayEl&&!todayEl.value){
+    const t=new Date();
+    todayEl.value=`${t.getFullYear()}-${String(t.getMonth()+1).padStart(2,'0')}-${String(t.getDate()).padStart(2,'0')}`;
+  }
+  renderTrimLists();
 }
-function addTrimSchedule(){
-  const client=document.getElementById('trim-client-sel').value;
-  const dayOfWeek=parseInt(document.getElementById('trim-day').value);
-  const time=document.getElementById('trim-time').value;
-  const freq=parseInt(document.getElementById('trim-freq').value);
-  const desc=document.getElementById('trim-desc').value||'גיזום שוטף';
-  if(!client){toast('בחר לקוח');return;}
+
+function switchTrimTab(tab){
+  _trimTab=tab;
+  document.getElementById('trim-fixed-list').style.display=tab==='fixed'?'block':'none';
+  document.getElementById('trim-once-list').style.display=tab==='once'?'block':'none';
+  document.getElementById('trim-tab-fixed').style.background=tab==='fixed'?'var(--green2)':'var(--white)';
+  document.getElementById('trim-tab-fixed').style.color=tab==='fixed'?'#fff':'var(--gray)';
+  document.getElementById('trim-tab-once').style.background=tab==='once'?'var(--green2)':'var(--white)';
+  document.getElementById('trim-tab-once').style.color=tab==='once'?'#fff':'var(--gray)';
+}
+
+function switchMTrimTab(tab){
+  document.getElementById('mtrim-fixed-form').style.display=tab==='fixed'?'block':'none';
+  document.getElementById('mtrim-once-form').style.display=tab==='once'?'block':'none';
+  document.getElementById('mtrim-tab-fixed').style.background=tab==='fixed'?'var(--green2)':'var(--white)';
+  document.getElementById('mtrim-tab-fixed').style.color=tab==='fixed'?'#fff':'var(--gray)';
+  document.getElementById('mtrim-tab-once').style.background=tab==='once'?'var(--green2)':'var(--white)';
+  document.getElementById('mtrim-tab-once').style.color=tab==='once'?'#fff':'var(--gray)';
+  // populate selects
+  openTrimSection();
+}
+
+function saveTrimEntry(){
   if(!D.trimSchedule)D.trimSchedule=[];
-  const c=D.clients.find(x=>x.name===client);
-  D.trimSchedule.push({id:Date.now(),client,dayOfWeek,time,freq,desc,price:c?c.fixed:'',phone:c?c.phone:''});
-  saveData();renderTrimList();closeM('m-trim');toast('✂️ נוסף ללוח הגזם!');
+  if(!D.trimOnce)D.trimOnce=[];
+  const isFixed=document.getElementById('mtrim-once-form').style.display==='none';
+
+  if(isFixed){
+    // Fixed schedule
+    const client=document.getElementById('trim-client-sel').value;
+    if(!client){toast('בחר לקוח');return;}
+    const dayOfWeek=parseInt(document.getElementById('trim-day').value);
+    const time=document.getElementById('trim-time').value;
+    const freq=parseInt(document.getElementById('trim-freq').value);
+    const desc=document.getElementById('trim-desc').value||'גזם';
+    const DAYS=['ראשון','שני','שלישי','רביעי','חמישי','שישי','שבת'];
+    const FREQTXT=['','כל שבוע','כל שבועיים','כל 3 שבועות','כל 4 שבועות'];
+    D.trimSchedule.push({id:Date.now(),client,dayOfWeek,time,freq,desc});
+    // Auto-schedule to calendar for 3 months
+    const added=scheduleTrimToCalendar([D.trimSchedule[D.trimSchedule.length-1]]);
+    saveData();renderTrimLists();renderCal();if(_trimTab==='fixed'){}
+    closeM('m-trim');
+    toast(`✂️ ${client} — ${DAYS[dayOfWeek]} ${FREQTXT[freq]} → ${added} תאריכים שובצו`);
+  } else {
+    // One-time
+    const client=document.getElementById('trim-once-client').value;
+    const date=document.getElementById('trim-once-date').value;
+    if(!client||!date){toast('בחר לקוח ותאריך');return;}
+    const time=document.getElementById('trim-once-time').value;
+    const desc=document.getElementById('trim-once-desc').value||'גזם';
+    D.trimOnce.push({id:Date.now(),client,date,time,desc});
+    // Add to calendar
+    if(!D.cal[date])D.cal[date]=[];
+    const exists=D.cal[date].some(e=>e.isTrim&&e.client===client);
+    if(!exists){
+      D.cal[date].push({client,desc:`✂️ ${desc}`,time,price:'',done:false,paid:false,isNote:false,isTrim:true,cancelled:false});
+    }
+    saveData();renderTrimLists();renderCal();
+    const parts=date.split('-');
+    closeM('m-trim');
+    toast(`✂️ ${client} — ${parseInt(parts[2])} ${MONTHS[parseInt(parts[1])-1]} שובץ בלוח`);
+  }
 }
-function renderTrimList(){
-  if(!D.trimSchedule)D.trimSchedule=[];
-  const DAYS=['ראשון','שני','שלישי','רביעי','חמישי','שישי','שבת'];
-  const FREQ=['','כל שבוע','כל שבועיים','כל 3 שב.','כל חודש'];
-  const list=document.getElementById('trim-list');
-  if(!D.trimSchedule.length){list.innerHTML='<div style="padding:16px;text-align:center;color:var(--gray4);font-size:13px;">לחץ + להוספת לקוח עם תאריך גזם קבוע</div>';return;}
-  list.innerHTML=D.trimSchedule.map(t=>`
-    <div style="padding:11px 14px;border-bottom:1px solid var(--gray3);display:flex;justify-content:space-between;align-items:center;">
-      <div>
-        <div style="font-size:13px;font-weight:700;">${t.client}</div>
-        <div style="font-size:11px;color:var(--gray4);">יום ${DAYS[t.dayOfWeek]} • ${t.time} • ${FREQ[t.freq]||''}</div>
-      </div>
-      <div style="display:flex;gap:6px;">
-        <button class="btn btn-r btn-sm" onclick="delTrimSchedule(${t.id})">🗑</button>
-      </div>
-    </div>`).join('');
-}
-function delTrimSchedule(id){
-  if(!confirm('למחוק?'))return;
-  D.trimSchedule=D.trimSchedule.filter(t=>t.id!==id);
-  saveData();renderTrimList();toast('🗑 נמחק');
-}
-function applyTrimSchedule(){
-  if(!D.trimSchedule||!D.trimSchedule.length){toast('אין לקוחות בלוח הגזם');return;}
+
+function scheduleTrimToCalendar(schedules){
   const now=new Date();
+  const maxDate=new Date(now);maxDate.setMonth(maxDate.getMonth()+3);
   let added=0;
-  // Apply for next 3 months
-  D.trimSchedule.forEach(t=>{
-    // Find first occurrence from today
+  schedules.forEach(t=>{
     const daysUntil=((t.dayOfWeek-now.getDay())+7)%7;
-    const firstDate=new Date(now);
-    firstDate.setDate(firstDate.getDate()+(daysUntil===0?0:daysUntil));
-    // Iterate every freq weeks for 3 months
-    let cur=new Date(firstDate);
-    const maxDate=new Date(now);maxDate.setMonth(maxDate.getMonth()+3);
+    let cur=new Date(now);
+    cur.setDate(cur.getDate()+daysUntil);
     while(cur<=maxDate){
       const key=`${cur.getFullYear()}-${String(cur.getMonth()+1).padStart(2,'0')}-${String(cur.getDate()).padStart(2,'0')}`;
       if(!D.cal[key])D.cal[key]=[];
-      const exists=D.cal[key].some(e=>!e.isNote&&e.client===t.client);
+      const exists=D.cal[key].some(e=>e.isTrim&&e.client===t.client);
       if(!exists){
-        D.cal[key].push({client:t.client,desc:t.desc,time:t.time,price:t.price||'',phone:t.phone||'',done:false,paid:false,isNote:false,fromTrim:true});
+        D.cal[key].push({client:t.client,desc:`✂️ ${t.desc||'גזם'}`,time:t.time,price:'',done:false,paid:false,isNote:false,isTrim:true,cancelled:false});
         added++;
       }
       cur.setDate(cur.getDate()+t.freq*7);
     }
   });
-  saveData();renderCal();updateStats();
-  toast(`✅ ${added} ביקורי גזם שובצו ב-3 חודשים הקרובים!`);
+  return added;
 }
+
+function renderTrimLists(){
+  if(!D.trimSchedule)D.trimSchedule=[];
+  if(!D.trimOnce)D.trimOnce=[];
+  const DAYS=['ראשון','שני','שלישי','רביעי','חמישי','שישי'];
+  const FREQTXT={1:'כל שבוע',2:'כל שבועיים',3:'כל 3 שב.',4:'כל 4 שב.'};
+
+  // Fixed list
+  const fl=document.getElementById('trim-fixed-list');
+  if(fl){
+    if(!D.trimSchedule.length){
+      fl.innerHTML='<div style="padding:20px;text-align:center;color:var(--gray4);font-size:13px;">אין לקוחות קבועים עם ימי גזם<br>לחץ + להוספה</div>';
+    } else {
+      fl.innerHTML=D.trimSchedule.map(t=>`
+        <div style="background:#fff;border:1px solid var(--gray3);border-radius:11px;padding:12px 14px;margin-bottom:9px;display:flex;justify-content:space-between;align-items:center;">
+          <div>
+            <div style="font-size:14px;font-weight:800;">✂️ ${t.client}</div>
+            <div style="font-size:12px;color:var(--gray4);margin-top:3px;">${DAYS[t.dayOfWeek]} • ${t.time} • ${FREQTXT[t.freq]||''}${t.desc?' • '+t.desc:''}</div>
+          </div>
+          <div style="display:flex;gap:6px;">
+            <button class="btn btn-g btn-sm" onclick="rescheduleFixed(${t.id})">🔄</button>
+            <button class="btn btn-r btn-sm" onclick="delTrimFixed(${t.id})">🗑</button>
+          </div>
+        </div>`).join('');
+    }
+  }
+
+  // One-time list
+  const ol=document.getElementById('trim-once-list');
+  if(ol){
+    const sorted=[...D.trimOnce].sort((a,b)=>a.date.localeCompare(b.date));
+    if(!sorted.length){
+      ol.innerHTML='<div style="padding:20px;text-align:center;color:var(--gray4);font-size:13px;">אין ביקורי גזם חד פעמיים<br>לחץ + להוספה</div>';
+    } else {
+      ol.innerHTML=sorted.map(t=>{
+        const parts=t.date.split('-');
+        const dateStr=`${parseInt(parts[2])} ${MONTHS[parseInt(parts[1])-1]} ${parts[0]}`;
+        return`<div style="background:#fff;border:1px solid var(--gray3);border-radius:11px;padding:12px 14px;margin-bottom:9px;display:flex;justify-content:space-between;align-items:center;">
+          <div>
+            <div style="font-size:14px;font-weight:800;">✂️ ${t.client}</div>
+            <div style="font-size:12px;color:var(--gray4);margin-top:3px;">${dateStr} • ${t.time}${t.desc?' • '+t.desc:''}</div>
+          </div>
+          <button class="btn btn-r btn-sm" onclick="delTrimOnce(${t.id})">🗑</button>
+        </div>`;
+      }).join('');
+    }
+  }
+}
+
+function rescheduleFixed(id){
+  const t=D.trimSchedule.find(x=>x.id===id);
+  if(!t)return;
+  const added=scheduleTrimToCalendar([t]);
+  saveData();renderCal();
+  toast(`🔄 ${added} תאריכים עודכנו בלוח`);
+}
+
+function delTrimFixed(id){
+  if(!confirm('למחוק לקוח זה מלוח הגזם הקבוע?'))return;
+  D.trimSchedule=D.trimSchedule.filter(t=>t.id!==id);
+  saveData();renderTrimLists();toast('🗑 נמחק');
+}
+
+function delTrimOnce(id){
+  const t=D.trimOnce.find(x=>x.id===id);
+  if(!confirm('למחוק?'))return;
+  // Remove from calendar too
+  if(t&&D.cal[t.date]){
+    D.cal[t.date]=D.cal[t.date].filter(e=>!(e.isTrim&&e.client===t.client));
+    if(!D.cal[t.date].length)delete D.cal[t.date];
+  }
+  D.trimOnce=D.trimOnce.filter(x=>x.id!==id);
+  saveData();renderTrimLists();renderCal();toast('🗑 נמחק');
+}
+
+// Old function aliases for compatibility
+function addTrimSchedule(){saveTrimEntry();}
+function applyTrimSchedule(){
+  if(!D.trimSchedule||!D.trimSchedule.length){toast('אין לקוחות קבועים');return;}
+  const added=scheduleTrimToCalendar(D.trimSchedule);
+  saveData();renderCal();
+  toast(`✅ ${added} תאריכי גזם שובצו!`);
+}
+
 
 // ═══════════════ WA WITH DEBT ═══════════════
 function buildMsg(type,name,phone){
