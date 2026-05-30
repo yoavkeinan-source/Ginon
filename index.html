@@ -1193,18 +1193,41 @@ function renderClientsStats(){
     </div>`;
 }
 
+function getClientLabel(c){
+  if(c.type==='חד פעמי') return {text:'חד פעמי',bg:'#fff1f2',color:'#991b1b'};
+  if(c.type==='רבעוני') return {text:'רבעוני',bg:'#f3e8ff',color:'#7e22ce'};
+  const freq=parseInt(c.freq)||1;
+  const labels={1:'פעם בחודש',2:'פעמיים בחודש',3:'3× בחודש',4:'כל שבוע'};
+  const colors={
+    1:{bg:'#dcfce7',color:'#166534'},
+    2:{bg:'#dbeafe',color:'#1d4ed8'},
+    3:{bg:'#f3e8ff',color:'#7e22ce'},
+    4:{bg:'#ffedd5',color:'#c2410c'}
+  };
+  return {text:'קבוע — '+labels[freq],..( colors[freq]||{bg:'#dcfce7',color:'#166534'})};
+}
+function getClientRowBg(c){
+  if(c.type==='חד פעמי') return '#fff';
+  const freq=parseInt(c.freq)||1;
+  const bgs={1:'#f0fdf4',2:'#eff6ff',3:'#faf5ff',4:'#fff7ed'};
+  return bgs[freq]||'#f0fdf4';
+}
 function renderClients(){
   renderClientsStats();
   const tb=document.getElementById('ctbody');
-  tb.innerHTML=D.clients.map(c=>`<tr>
-    <td><strong>${c.name}</strong></td>
-    <td><a href="tel:${c.phone.replace(/[^0-9]/g,'')}" style="color:#1d4ed8;">${c.phone}</a></td>
-    <td><span class="badge ${c.type==='חד פעמי'?'bgr':'bg'}">${c.type}</span></td>
-    <td><input value="${c.fixed||'—'}" onchange="updClientFixed(${c.id},this.value)" style="width:70px;border:1px dashed var(--gray3);border-radius:6px;padding:3px 7px;font-size:12px;font-family:'Heebo',sans-serif;"></td>
-    <td style="color:${parseFloat(c.debt||0)>0?'var(--red)':'var(--green)'};font-weight:700;">${c.debt||0} ₪</td>
-    <td><button class="wa-btn" onclick="openWADirect('${c.phone}','${c.name}','visit')">📱</button></td>
-    <td style="display:flex;gap:5px;"><button class="btn btn-gray btn-sm" onclick="openEditClient(${c.id})">✏️</button><button class="btn btn-r btn-sm" onclick="delClient(${c.id})">🗑</button></td>
-  </tr>`).join('')||'<tr><td colspan="7" style="text-align:center;color:var(--gray4);padding:16px;">אין לקוחות — לחץ + להוספה</td></tr>';
+  tb.innerHTML=D.clients.map(c=>{
+    const lbl=getClientLabel(c);
+    const rowBg=getClientRowBg(c);
+    return`<tr style="background:${rowBg};">
+      <td><strong>${c.name}</strong></td>
+      <td><a href="tel:${c.phone.replace(/[^0-9]/g,'')}" style="color:#1d4ed8;">${c.phone}</a></td>
+      <td><span style="background:${lbl.bg};color:${lbl.color};padding:3px 8px;border-radius:6px;font-size:11px;font-weight:700;white-space:nowrap;">${lbl.text}</span></td>
+      <td><input value="${c.fixed||'—'}" onchange="updClientFixed(${c.id},this.value)" style="width:70px;border:1px dashed var(--gray3);border-radius:6px;padding:3px 7px;font-size:12px;font-family:'Heebo',sans-serif;"></td>
+      <td style="color:${parseFloat(c.debt||0)>0?'var(--red)':'var(--green)'};font-weight:700;">${c.debt||0} ₪</td>
+      <td><button class="wa-btn" onclick="openWADirect('${c.phone}','${c.name}','visit')">📱</button></td>
+      <td style="display:flex;gap:5px;"><button class="btn btn-gray btn-sm" onclick="openEditClient(${c.id})">✏️</button><button class="btn btn-r btn-sm" onclick="delClient(${c.id})">🗑</button></td>
+    </tr>`;
+  }).join('')||'<tr><td colspan="7" style="text-align:center;color:var(--gray4);padding:16px;">אין לקוחות — לחץ + להוספה</td></tr>';
   document.getElementById('st-clients').textContent=D.clients.length;
 }
 function addClient(){
