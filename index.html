@@ -1602,6 +1602,34 @@ function openMonthPlanner(){
 
 
 // One-click schedule: adds immediately without modal
+function quickAddFromPlanner(name, fixed){
+  // Open add event modal with client pre-filled
+  closeM('m-planner');
+  // Set selected date to current cal month start or today
+  const now = new Date();
+  const y = calDate.getFullYear(), m = calDate.getMonth();
+  // Use today if in current month, else first of displayed month
+  let dateToUse;
+  if(now.getFullYear()===y && now.getMonth()===m){
+    dateToUse = `${now.getFullYear()}-${String(now.getMonth()+1).padStart(2,'0')}-${String(now.getDate()).padStart(2,'0')}`;
+  } else {
+    dateToUse = `${y}-${String(m+1).padStart(2,'0')}-01`;
+  }
+  window._selDate = dateToUse;
+  openAddEvent(dateToUse);
+  setTimeout(()=>{
+    const search = document.getElementById('ev-search');
+    const sel = document.getElementById('ev-sel');
+    if(search) search.value = name;
+    if(sel) sel.value = name;
+    if(fixed){
+      const p = fixed.replace(/[^0-9]/g,'');
+      const priceEl = document.getElementById('ev-price');
+      if(p && priceEl) priceEl.value = p;
+    }
+  }, 150);
+}
+
 function quickSchedule(name, date, price, phone){
   if(!date){toast('לא ניתן לחשב תאריך');return;}
   if(!D.cal[date])D.cal[date]=[];
@@ -1667,7 +1695,11 @@ function delVisit(key,i){
   if(sel)showDay(key,parseInt(parts[2]),parseInt(parts[1])-1,parseInt(parts[0]),sel);
   toast('🗑 נמחק');
 }
-function chMonth(d){calDate.setMonth(calDate.getMonth()+d);renderCal();}
+function chMonth(d){
+  // Fix: avoid day overflow (e.g. May 31 + 1 = July 1)
+  calDate=new Date(calDate.getFullYear(), calDate.getMonth()+d, 1);
+  renderCal();
+}
 function filterClientSearch(q){
   const dropdown=document.getElementById('ev-dropdown');
   const filtered=q.trim()?D.clients.filter(c=>c.name.includes(q)||c.name.toLowerCase().includes(q.toLowerCase())):D.clients;
