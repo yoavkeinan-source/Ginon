@@ -1482,19 +1482,29 @@ function openMonthPlanner(){
   document.getElementById('planner-month-title').textContent=`📅 ${MONTHS[m]} ${y}`;
   const mp=`${y}-${String(m+1).padStart(2,'0')}`;
 
-  // Count visits per client this month
+  // Count visits per client in the DISPLAYED month
   const counts={};
   Object.entries(D.cal||{}).forEach(([key,evs])=>{
     if(!key.startsWith(mp))return;
     evs.forEach(ev=>{if(!ev.isNote&&!ev.cancelled)counts[ev.client]=(counts[ev.client]||0)+1;});
   });
 
-  // Find last visit date per client (done visits only)
+  // Find last DONE visit per client (before or in this month)
   const lastVisit={};
   Object.entries(D.cal||{}).forEach(([key,evs])=>{
     evs.forEach(ev=>{
       if(!ev.isNote&&!ev.cancelled&&ev.done&&ev.client){
         if(!lastVisit[ev.client]||key>lastVisit[ev.client])lastVisit[ev.client]=key;
+      }
+    });
+  });
+
+  // Also find LAST SCHEDULED visit (done or not) — to calculate next from
+  const lastScheduled={};
+  Object.entries(D.cal||{}).forEach(([key,evs])=>{
+    evs.forEach(ev=>{
+      if(!ev.isNote&&!ev.cancelled&&ev.client){
+        if(!lastScheduled[ev.client]||key>lastScheduled[ev.client])lastScheduled[ev.client]=key;
       }
     });
   });
@@ -1505,7 +1515,6 @@ function openMonthPlanner(){
     openM('m-planner');return;
   }
 
-  // Sort: missing first
   const sorted=[...monthly].sort((a,b)=>{
     const fa=parseInt(a.freq)||1,fb=parseInt(b.freq)||1;
     const aa=counts[a.name]||0,ab=counts[b.name]||0;
@@ -1522,67 +1531,59 @@ function openMonthPlanner(){
 
   let html='';
 
-  // ── Missing clients ──
   if(missing.length){
     html+=`<div style="padding:7px 14px;font-size:11px;font-weight:700;color:#991b1b;background:#fff1f2;border-bottom:1px solid #fecaca;">⚠️ חסרים ביקורים (${missing.length})</div>`;
     html+=missing.map(c=>{
       const freq=parseInt(c.freq)||1;
       const actual=counts[c.name]||0;
       const miss=freq-actual;
-      const last=lastVisit[c.name];
-
-      // Calculate next suggested date: last + freq_days, keep same day of week
+      // Calculate from LAST SCHEDULED (not just done) — so yuli follows yuni
+      const refDate = lastScheduled[c.name];
       let nextDate='';
-      if(last){
-        const lastD=new Date(last);
-        const freqDays=FREQ_DAYS[freq];
-        // Add exact number of days
-        const next=new Date(lastD);
-        next.setDate(next.getDate()+freqDays);
+      if(refDate){
+        const next=new Date(refDate);
+        next.setDate(next.getDate()+FREQ_DAYS[freq]);
         nextDate=`${next.getFullYear()}-${String(next.getMonth()+1).padStart(2,'0')}-${String(next.getDate()).padStart(2,'0')}`;
       } else {
-        // No history - suggest today
-        const t=new Date();
+        const t=new Date(y,m,1);
         nextDate=`${t.getFullYear()}-${String(t.getMonth()+1).padStart(2,'0')}-${String(t.getDate()).padStart(2,'0')}`;
       }
-
-      const lastParts=last?last.split('-'):null;
+      const refParts=refDate?refDate.split('-'):null;
       const nextParts=nextDate.split('-');
-      const lastTxt=last?`אחרון: ${parseInt(lastParts[2])} ${MONTHS[parseInt(lastParts[1])-1]}`:'טרם ביקר';
+      const refTxt=refDate?`אחרון: ${parseInt(refParts[2])} ${MONTHS[parseInt(refParts[1])-1]}`:'לא שובץ עדיין';
       const nextTxt=`${parseInt(nextParts[2])} ${MONTHS[parseInt(nextParts[1])-1]}`;
-
-      // Check if already scheduled on that date
       const alreadyOnNext=D.cal[nextDate]&&D.cal[nextDate].some(e=>!e.isNote&&e.client===c.name);
 
       return`<div style="border-bottom:1px solid var(--gray3);padding:11px 14px;background:#fff;">
-        <div style="display:flex;align-items:center;gap:10px;">
+        <div style="display:flex;align-items:center;gap:8px;">
           <div style="flex:1;min-width:0;">
             <div style="font-size:13px;font-weight:800;">⚠️ ${c.name}</div>
-            <div style="font-size:11px;color:var(--gray4);margin-top:2px;">${FREQTXT[freq]} · ${actual}/${freq} החודש · ${lastTxt}</div>
-            <div style="font-size:12px;color:#c2410c;font-weight:700;margin-top:2px;">הבא: ${nextTxt}${alreadyOnNext?' ✅ שובץ כבר':''}</div>
+            <div style="font-size:11px;color:var(--gray4);margin-top:2px;">${FREQTXT[freq]} · ${actual}/${freq} ב${MONTHS[m]} · ${refTxt}</div>
+            <div style="font-size:12px;color:#c2410c;font-weight:700;margin-top:2px;">מוצע: ${nextTxt}${alreadyOnNext?' ✅ שובץ':''}</div>
           </div>
-          ${!alreadyOnNext?`<button onclick="quickSchedule('${c.name.replace(/'/g,"\'")}','${nextDate}','${c.fixed||''}','${c.phone||''}')"
-            style="flex-shrink:0;padding:9px 16px;background:var(--green2);color:#fff;border:none;border-radius:9px;font-size:13px;font-weight:700;cursor:pointer;font-family:'Heebo',sans-serif;">
-            📅 שבץ
-          </button>`:`<span style="font-size:11px;color:var(--green);font-weight:700;">✅ שובץ</span>`}
+          <div style="display:flex;gap:5px;flex-shrink:0;">
+            ${!alreadyOnNext?`<button onclick="quickSchedule('${c.name.replace(/'/g,"\'")}','${nextDate}','${c.fixed||''}','${c.phone||''}')"
+              style="padding:8px 13px;background:var(--green2);color:#fff;border:none;border-radius:9px;font-size:12px;font-weight:700;cursor:pointer;font-family:'Heebo',sans-serif;">
+              📅 שבץ
+            </button>`:`<span style="font-size:11px;color:var(--green);font-weight:700;padding:8px;">✅</span>`}
+            <button onclick="quickAddFromPlanner('${c.name.replace(/'/g,"\'")}','${c.fixed||''}');closeM('m-planner');"
+              style="padding:8px 10px;background:var(--gray2);color:var(--dark);border:1px solid var(--gray3);border-radius:9px;font-size:12px;font-weight:700;cursor:pointer;font-family:'Heebo',sans-serif;">
+              ✏️
+            </button>
+          </div>
         </div>
       </div>`;
     }).join('');
   }
 
-  // ── OK clients ──
   if(ok.length){
     html+=`<div style="padding:7px 14px;font-size:11px;font-weight:700;color:var(--green);background:var(--green3);border-bottom:1px solid var(--green4);">✅ שובצו (${ok.length})</div>`;
     html+=ok.map(c=>{
       const freq=parseInt(c.freq)||1;
       const actual=counts[c.name]||0;
-      const last=lastVisit[c.name];
-      const freqDays=FREQ_DAYS[freq];
+      const refDate=lastScheduled[c.name];
       let nextDate='';
-      if(last){
-        const next=new Date(last);next.setDate(next.getDate()+freqDays);
-        nextDate=`${next.getFullYear()}-${String(next.getMonth()+1).padStart(2,'0')}-${String(next.getDate()).padStart(2,'0')}`;
-      }
+      if(refDate){const next=new Date(refDate);next.setDate(next.getDate()+FREQ_DAYS[freq]);nextDate=`${next.getFullYear()}-${String(next.getMonth()+1).padStart(2,'0')}-${String(next.getDate()).padStart(2,'0')}`;}
       const nextParts=nextDate?nextDate.split('-'):null;
       const nextTxt=nextParts?`הבא: ${parseInt(nextParts[2])} ${MONTHS[parseInt(nextParts[1])-1]}`:'';
       const alreadyOnNext=nextDate&&D.cal[nextDate]&&D.cal[nextDate].some(e=>!e.isNote&&e.client===c.name);
@@ -1591,10 +1592,16 @@ function openMonthPlanner(){
           <div style="font-size:13px;font-weight:800;">✅ ${c.name}</div>
           <div style="font-size:11px;color:var(--gray4);margin-top:2px;">${actual}/${freq} פעמים · ${nextTxt}</div>
         </div>
-        ${nextDate&&!alreadyOnNext?`<button onclick="quickSchedule('${c.name.replace(/'/g,"\'")}','${nextDate}','${c.fixed||''}','${c.phone||''}')"
-          style="padding:6px 12px;background:rgba(255,255,255,.7);color:var(--green);border:1px solid var(--green4);border-radius:8px;font-size:11px;font-weight:700;cursor:pointer;font-family:'Heebo',sans-serif;">
-          + הוסף ביקור
-        </button>`:''}
+        <div style="display:flex;gap:5px;">
+          ${nextDate&&!alreadyOnNext?`<button onclick="quickSchedule('${c.name.replace(/'/g,"\'")}','${nextDate}','${c.fixed||''}','${c.phone||''}')"
+            style="padding:6px 10px;background:rgba(255,255,255,.8);color:var(--green);border:1px solid var(--green4);border-radius:8px;font-size:11px;font-weight:700;cursor:pointer;font-family:'Heebo',sans-serif;">
+            📅 הבא
+          </button>`:''}
+          <button onclick="quickAddFromPlanner('${c.name.replace(/'/g,"\'")}','${c.fixed||''}');closeM('m-planner');"
+            style="padding:6px 10px;background:rgba(255,255,255,.8);color:var(--dark);border:1px solid var(--gray3);border-radius:8px;font-size:11px;font-weight:700;cursor:pointer;font-family:'Heebo',sans-serif;">
+            ✏️
+          </button>
+        </div>
       </div>`;
     }).join('');
   }
@@ -1603,6 +1610,7 @@ function openMonthPlanner(){
   document.getElementById('planner-body').innerHTML=html;
   openM('m-planner');
 }
+
 
 // One-click schedule: adds immediately without modal
 function quickSchedule(name, date, price, phone){
