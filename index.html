@@ -1533,13 +1533,22 @@ function openMonthPlanner(){
       if(refDate){
         const refD=new Date(refDate);
         const freqDays=FREQ_DAYS[freq];
-        // Add exact number of days — keeps same day of week naturally (7/14/21 are multiples of 7)
+        // Find the next occurrence that falls IN the displayed month
         const next=new Date(refD);
         next.setDate(next.getDate()+freqDays);
-        nextDate=`${next.getFullYear()}-${String(next.getMonth()+1).padStart(2,'0')}-${String(next.getDate()).padStart(2,'0')}`;
+        // Keep adding freqDays until we're in the displayed month or past it
+        while(next.getFullYear()<y || (next.getFullYear()===y && next.getMonth()<m)){
+          next.setDate(next.getDate()+freqDays);
+        }
+        // Only suggest if the result is within the displayed month
+        if(next.getFullYear()===y && next.getMonth()===m){
+          nextDate=`${next.getFullYear()}-${String(next.getMonth()+1).padStart(2,'0')}-${String(next.getDate()).padStart(2,'0')}`;
+        } else {
+          nextDate=''; // falls outside this month — don't suggest
+        }
       } else {
-        const t=new Date(y,m,1);
-        nextDate=`${t.getFullYear()}-${String(t.getMonth()+1).padStart(2,'0')}-01`;
+        // No history — suggest first day of displayed month
+        nextDate=`${y}-${String(m+1).padStart(2,'0')}-01`;
       }
       const nextParts=nextDate.split('-');
       const nextTxt=`${parseInt(nextParts[2])} ${MONTHS[parseInt(nextParts[1])-1]}`;
@@ -1553,9 +1562,9 @@ function openMonthPlanner(){
             <div style="font-size:11px;color:#c2410c;font-weight:700;margin-top:2px;">חסר ${miss} ביקור${miss>1?'ים':''} · מוצע: ${nextTxt}${alreadyOnNext?' ✅':''}</div>
           </div>
           <div style="display:flex;gap:5px;flex-shrink:0;">
-            ${!alreadyOnNext?`<button onclick="quickSchedule('${c.name.replace(/'/g,"\'")}','${nextDate}','${c.fixed||''}','${c.phone||''}')"
+            ${nextDate&&!alreadyOnNext?`<button onclick="quickSchedule('${c.name.replace(/'/g,"\'")}','${nextDate}','${c.fixed||''}','${c.phone||''}')"
               style="padding:8px 13px;background:var(--green2);color:#fff;border:none;border-radius:9px;font-size:12px;font-weight:700;cursor:pointer;font-family:'Heebo',sans-serif;">
-              📅 שבץ
+              📅 ${nextDate?nextDate.split('-')[2]+' '+MONTHS[parseInt(nextDate.split('-')[1])-1]:'שבץ'}
             </button>`:''}
             <button onclick="quickAddFromPlanner('${c.name.replace(/'/g,"\'")}','${c.fixed||''}');closeM('m-planner');"
               style="padding:8px 12px;background:var(--green2);color:#fff;border:none;border-radius:9px;font-size:12px;font-weight:700;cursor:pointer;font-family:'Heebo',sans-serif;">
@@ -1575,7 +1584,17 @@ function openMonthPlanner(){
       const actual=counts[c.name]||0;
       const refDate=lastScheduled[c.name];
       let nextDate='';
-      if(refDate){const refD2=new Date(refDate);refD2.setDate(refD2.getDate()+FREQ_DAYS[freq]);nextDate=`${refD2.getFullYear()}-${String(refD2.getMonth()+1).padStart(2,'0')}-${String(refD2.getDate()).padStart(2,'0')}`;}
+      if(refDate){
+        const refD2=new Date(refDate);
+        refD2.setDate(refD2.getDate()+FREQ_DAYS[freq]);
+        // Advance until in displayed month
+        while(refD2.getFullYear()<y||(refD2.getFullYear()===y&&refD2.getMonth()<m)){
+          refD2.setDate(refD2.getDate()+FREQ_DAYS[freq]);
+        }
+        if(refD2.getFullYear()===y&&refD2.getMonth()===m){
+          nextDate=`${refD2.getFullYear()}-${String(refD2.getMonth()+1).padStart(2,'0')}-${String(refD2.getDate()).padStart(2,'0')}`;
+        }
+      }
       const nextParts=nextDate?nextDate.split('-'):null;
       const nextTxt=nextParts?`הבא: ${parseInt(nextParts[2])} ${MONTHS[parseInt(nextParts[1])-1]}`:'';
       const alreadyOnNext=nextDate&&D.cal[nextDate]&&D.cal[nextDate].some(e=>!e.isNote&&e.client===c.name);
