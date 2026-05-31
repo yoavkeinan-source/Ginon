@@ -535,13 +535,33 @@ tr:last-child td{border-bottom:none;}
 
 <!-- MODALS -->
 <div class="ov" id="m-planner"><div class="modal">
-  <div class="mh"><h3>📋 סידור חודש</h3><button class="mc" onclick="closeM('m-planner')">✕</button></div>
-  <div style="padding:12px 14px;background:var(--green3);border-bottom:1px solid var(--green4);">
+  <div class="mh"><h3>📋 שיבוץ חכם</h3><button class="mc" onclick="closeM('m-planner')">✕</button></div>
+  <div style="padding:9px 14px;background:var(--green3);border-bottom:1px solid var(--green4);">
     <div style="font-size:12px;color:var(--green);font-weight:700;" id="planner-month-title"></div>
-    <div style="font-size:11px;color:var(--gray4);margin-top:2px;">✅ = שובץ מספיק פעמים &nbsp;|&nbsp; ⚠️ = חסר ביקורים</div>
+    <div style="font-size:11px;color:var(--gray4);margin-top:2px;">לחץ על לקוח לשיבוץ מהיר לפי התדירות שלו</div>
   </div>
-  <div id="planner-body" style="max-height:60vh;overflow-y:auto;"></div>
+  <div id="planner-body" style="max-height:65vh;overflow-y:auto;"></div>
   <div class="mf"><button class="btn btn-gray" onclick="closeM('m-planner')">סגור</button></div>
+</div></div>
+
+<div class="ov" id="m-smart-schedule"><div class="modal">
+  <div class="mh"><h3 id="sched-title">📅 שיבוץ חכם</h3><button class="mc" onclick="closeM('m-smart-schedule')">✕</button></div>
+  <div class="mb">
+    <div id="sched-info" style="background:var(--green3);border-radius:10px;padding:10px 13px;margin-bottom:12px;font-size:12px;color:var(--green);font-weight:700;"></div>
+    <div class="fi" style="margin-bottom:10px;"><label>📅 תאריך מוצע</label>
+      <input id="sched-date" type="date" style="width:100%;padding:10px;border:1.5px solid var(--gray3);border-radius:9px;font-size:14px;font-family:'Heebo',sans-serif;">
+    </div>
+    <div class="fi" style="margin-bottom:10px;"><label>🕐 שעה</label>
+      <input id="sched-time" type="time" value="09:00" style="width:100%;padding:10px;border:1.5px solid var(--gray3);border-radius:9px;font-size:13px;font-family:'Heebo',sans-serif;">
+    </div>
+    <div class="fi" style="margin-bottom:0;"><label>💰 מחיר</label>
+      <input id="sched-price" type="text" placeholder="₪" style="width:100%;padding:10px;border:1.5px solid var(--gray3);border-radius:9px;font-size:13px;font-family:'Heebo',sans-serif;">
+    </div>
+  </div>
+  <div class="mf">
+    <button class="btn btn-gray" onclick="closeM('m-smart-schedule')">ביטול</button>
+    <button class="btn btn-g" onclick="confirmSmartSchedule()">✅ שבץ ללוח</button>
+  </div>
 </div></div>
 
 <div class="ov" id="m-edit-client"><div class="modal">
@@ -1459,84 +1479,125 @@ function searchClientInCal(q){
 
 function openMonthPlanner(){
   const y=calDate.getFullYear(),m=calDate.getMonth();
-  document.getElementById('planner-month-title').textContent=`${MONTHS[m]} ${y} — לקוחות חודשיים`;
+  document.getElementById('planner-month-title').textContent=`📅 ${MONTHS[m]} ${y} — שיבוץ חכם`;
   const mp=`${y}-${String(m+1).padStart(2,'0')}`;
 
-  // Count how many times each client appears this month
+  // Count visits per client this month
   const counts={};
   Object.entries(D.cal||{}).forEach(([key,evs])=>{
-    if(!key.startsWith(mp)) return;
+    if(!key.startsWith(mp))return;
+    evs.forEach(ev=>{if(!ev.isNote&&!ev.cancelled)counts[ev.client]=(counts[ev.client]||0)+1;});
+  });
+
+  // Find last visit date per client (anywhere in calendar)
+  const lastVisit={};
+  Object.entries(D.cal||{}).forEach(([key,evs])=>{
     evs.forEach(ev=>{
-      if(ev.isNote||ev.cancelled) return;
-      counts[ev.client]=(counts[ev.client]||0)+1;
+      if(!ev.isNote&&!ev.cancelled&&ev.done){
+        if(!lastVisit[ev.client]||key>lastVisit[ev.client])lastVisit[ev.client]=key;
+      }
     });
   });
 
-  // Only monthly/regular clients
+  // Only monthly clients
   const monthly=D.clients.filter(c=>c.type==='חודשי');
+  if(!monthly.length){
+    document.getElementById('planner-body').innerHTML='<div style="padding:20px;text-align:center;color:var(--gray4);">אין לקוחות קבועים</div>';
+    openM('m-planner');return;
+  }
+
+  // Sort: missing first
+  const sorted=[...monthly].sort((a,b)=>{
+    const fa=parseInt(a.freq)||1,fb=parseInt(b.freq)||1;
+    const aa=counts[a.name]||0,ab=counts[b.name]||0;
+    const okA=aa>=fa,okB=ab>=fb;
+    if(okA&&!okB)return 1;if(!okA&&okB)return -1;
+    return a.name.localeCompare(b.name);
+  });
+
+  const FREQ_DAYS={1:30,2:14,3:10,4:7};
 
   let html='';
+  sorted.forEach(c=>{
+    const freq=parseInt(c.freq)||1;
+    const actual=counts[c.name]||0;
+    const ok=actual>=freq;
+    const missing=freq-actual;
+    const last=lastVisit[c.name];
+    const FREQTXT={1:'פעם בחודש',2:'כל שבועיים',3:'כל 10 ימים',4:'כל שבוע'};
 
-  if(!monthly.length){
-    html='<div style="padding:20px;text-align:center;color:var(--gray4);">אין לקוחות קבועים — הוסף לקוחות עם חוזה חודשי</div>';
-  } else {
-    // Sort: missing first, then ok
-    const sorted=[...monthly].sort((a,b)=>{
-      const fa=parseInt(a.freq)||1, fb=parseInt(b.freq)||1;
-      const aa=counts[a.name]||0, ab=counts[b.name]||0;
-      const okA=aa>=fa, okB=ab>=fb;
-      if(okA&&!okB)return 1;
-      if(!okA&&okB)return -1;
-      return a.name.localeCompare(b.name);
-    });
-    const missing=sorted.filter(c=>{const f=parseInt(c.freq)||1;return(counts[c.name]||0)<f;});
-    const ok=sorted.filter(c=>{const f=parseInt(c.freq)||1;return(counts[c.name]||0)>=f;});
-    if(missing.length){
-      html+=`<div style="padding:7px 14px;font-size:11px;font-weight:700;color:#991b1b;background:#fff1f2;border-bottom:1px solid #fecaca;">⚠️ חסרים ביקורים (${missing.length})</div>`;
-      html+=missing.map(c=>{
-        const freq=parseInt(c.freq)||1;
-        const actual=counts[c.name]||0;
-        const miss=freq-actual;
-        const FREQTXT={1:'פעם',2:'פעמיים',3:'3×',4:'4×'};
-        return`<div style="display:flex;align-items:center;gap:10px;padding:11px 14px;border-bottom:1px solid var(--gray3);background:#fff8f8;">
-          <div style="font-size:18px;">⚠️</div>
-          <div style="flex:1;">
-            <div style="font-size:13px;font-weight:700;">${c.name}</div>
-            <div style="font-size:11px;color:var(--gray4);">${actual}/${freq} פעמים · ${c.fixed?c.fixed+' ₪':''}</div>
-            <div style="font-size:11px;color:#991b1b;font-weight:700;">חסר ${miss} ביקור${miss>1?'ים':''}</div>
-          </div>
-          <button class="btn btn-g btn-sm" onclick="quickAddFromPlanner('${c.name.replace(/'/g,"\'")}','${c.fixed||''}');closeM('m-planner');">+ הוסף</button>
-        </div>`;
-      }).join('');
+    // Calculate suggested next date
+    let suggestedDate='';
+    if(last){
+      const lastD=new Date(last);
+      lastD.setDate(lastD.getDate()+FREQ_DAYS[freq]);
+      suggestedDate=`${lastD.getFullYear()}-${String(lastD.getMonth()+1).padStart(2,'0')}-${String(lastD.getDate()).padStart(2,'0')}`;
+    } else {
+      // No last visit - suggest today
+      const t=new Date();
+      suggestedDate=`${t.getFullYear()}-${String(t.getMonth()+1).padStart(2,'0')}-${String(t.getDate()).padStart(2,'0')}`;
     }
-    if(ok.length){
-      html+=`<div style="padding:7px 14px;font-size:11px;font-weight:700;color:var(--green);background:var(--green3);border-bottom:1px solid var(--green4);">✅ שובצו (${ok.length})</div>`;
-      html+=ok.map(c=>{
-        const freq=parseInt(c.freq)||1;
-        const actual=counts[c.name]||0;
-        return`<div style="display:flex;align-items:center;gap:10px;padding:10px 14px;border-bottom:1px solid var(--gray3);background:var(--green3);">
-          <div style="font-size:18px;">✅</div>
-          <div style="flex:1;">
-            <div style="font-size:13px;font-weight:700;">${c.name}</div>
-            <div style="font-size:11px;color:var(--gray4);">${actual}/${freq} פעמים</div>
-          </div>
-        </div>`;
-      }).join('');
-    }
-  }
+
+    const lastTxt=last?`ביקור אחרון: ${parseInt(last.split('-')[2])} ${MONTHS[parseInt(last.split('-')[1])-1]}`:'לא ביקרת עדיין';
+    const sugParts=suggestedDate.split('-');
+    const sugTxt=`מוצע: ${parseInt(sugParts[2])} ${MONTHS[parseInt(sugParts[1])-1]}`;
+
+    html+=`<div style="border-bottom:1px solid var(--gray3);padding:12px 14px;background:${ok?'#f0fdf4':'#fff'};">
+      <div style="display:flex;align-items:center;justify-content:space-between;gap:10px;">
+        <div style="flex:1;">
+          <div style="font-size:14px;font-weight:800;">${ok?'✅':'⚠️'} ${c.name}</div>
+          <div style="font-size:11px;color:var(--gray4);margin-top:3px;">${FREQTXT[freq]} · ${actual}/${freq} פעמים החודש</div>
+          <div style="font-size:11px;color:${ok?'var(--green)':'#c2410c'};font-weight:700;margin-top:2px;">${lastTxt} · ${sugTxt}</div>
+        </div>
+        <button onclick="openSmartSchedule('${c.name.replace(/'/g,"\'")}','${suggestedDate}','${c.fixed||''}','${c.phone||''}')"
+          style="flex-shrink:0;padding:8px 14px;background:${ok?'var(--green3)':'var(--green2)'};color:${ok?'var(--green)':'#fff'};border:1px solid var(--green4);border-radius:9px;font-size:12px;font-weight:700;cursor:pointer;font-family:'Heebo',sans-serif;white-space:nowrap;">
+          ${ok?'+ עוד ביקור':'📅 שבץ'}
+        </button>
+      </div>
+    </div>`;
+  });
+
   document.getElementById('planner-body').innerHTML=html;
   openM('m-planner');
 }
 
-function markPaidFromDash(key, clientName){
-  if(!D.cal[key]) return;
-  // Find the visit for this client on this date
-  const ev = D.cal[key].find(e=>!e.isNote&&!e.cancelled&&e.done&&!e.paid&&e.client===clientName);
-  if(!ev){toast('לא נמצא ביקור');return;}
-  ev.paid = true;
-  saveData(); updateStats(); renderDash(); renderCal();
-  toast(`💰 ${clientName} — סומן כשולם!`);
+let _schedClient='',_schedPhone='';
+function openSmartSchedule(name,date,price,phone){
+  _schedClient=name; _schedPhone=phone;
+  document.getElementById('sched-title').textContent=`📅 שיבוץ — ${name}`;
+  document.getElementById('sched-date').value=date;
+  document.getElementById('sched-price').value=price;
+  document.getElementById('sched-time').value='09:00';
+  // Info about last visit
+  const lastVisit=Object.entries(D.cal||{}).filter(([k,evs])=>evs.some(e=>!e.isNote&&!e.cancelled&&e.done&&e.client===name)).map(([k])=>k).sort().pop();
+  const c=D.clients.find(x=>x.name===name);
+  const freq=parseInt(c?.freq)||1;
+  const FREQTXT={1:'פעם בחודש',2:'כל שבועיים',3:'כל 10 ימים',4:'כל שבוע'};
+  const lastTxt=lastVisit?`ביקור אחרון: ${parseInt(lastVisit.split('-')[2])} ${MONTHS[parseInt(lastVisit.split('-')[1])-1]} ${lastVisit.split('-')[0]}`:'ביקור ראשון';
+  document.getElementById('sched-info').textContent=`👤 ${name} · ${FREQTXT[freq]} · ${lastTxt}`;
+  closeM('m-planner');
+  openM('m-smart-schedule');
 }
+
+function confirmSmartSchedule(){
+  const date=document.getElementById('sched-date').value;
+  const time=document.getElementById('sched-time').value;
+  const price=document.getElementById('sched-price').value;
+  if(!date){toast('בחר תאריך');return;}
+  if(!D.cal[date])D.cal[date]=[];
+  const exists=D.cal[date].some(e=>!e.isNote&&e.client===_schedClient);
+  if(exists){toast('הלקוח כבר שובץ ביום זה!');return;}
+  const c=D.clients.find(x=>x.name===_schedClient);
+  D.cal[date].push({client:_schedClient,desc:'',time,price,phone:_schedPhone,done:false,paid:false,isNote:false,cancelled:false});
+  saveData();renderCal();updateStats();
+  closeM('m-smart-schedule');
+  const parts=date.split('-');
+  toast(`✅ ${_schedClient} שובץ ל-${parseInt(parts[2])} ${MONTHS[parseInt(parts[1])-1]}!`);
+  // Jump to that month in calendar
+  calDate=new Date(parseInt(parts[0]),parseInt(parts[1])-1,1);
+  renderCal();
+}
+
 
 function quickAddFromPlanner(name,fixed){
   // Pre-fill event modal with client name and open it
