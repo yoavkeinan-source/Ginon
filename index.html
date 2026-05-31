@@ -1479,7 +1479,7 @@ function searchClientInCal(q){
 
 function openMonthPlanner(){
   const y=calDate.getFullYear(),m=calDate.getMonth();
-  document.getElementById('planner-month-title').textContent=`📅 ${MONTHS[m]} ${y} — שיבוץ חכם`;
+  document.getElementById('planner-month-title').textContent=`📅 ${MONTHS[m]} ${y}`;
   const mp=`${y}-${String(m+1).padStart(2,'0')}`;
 
   // Count visits per client this month
@@ -1489,17 +1489,16 @@ function openMonthPlanner(){
     evs.forEach(ev=>{if(!ev.isNote&&!ev.cancelled)counts[ev.client]=(counts[ev.client]||0)+1;});
   });
 
-  // Find last visit date per client (anywhere in calendar)
+  // Find last visit date per client (done visits only)
   const lastVisit={};
   Object.entries(D.cal||{}).forEach(([key,evs])=>{
     evs.forEach(ev=>{
-      if(!ev.isNote&&!ev.cancelled&&ev.done){
+      if(!ev.isNote&&!ev.cancelled&&ev.done&&ev.client){
         if(!lastVisit[ev.client]||key>lastVisit[ev.client])lastVisit[ev.client]=key;
       }
     });
   });
 
-  // Only monthly clients
   const monthly=D.clients.filter(c=>c.type==='חודשי');
   if(!monthly.length){
     document.getElementById('planner-body').innerHTML='<div style="padding:20px;text-align:center;color:var(--gray4);">אין לקוחות קבועים</div>';
@@ -1516,100 +1515,114 @@ function openMonthPlanner(){
   });
 
   const FREQ_DAYS={1:30,2:14,3:10,4:7};
+  const FREQTXT={1:'פעם בחודש',2:'כל שבועיים',3:'כל 10 ימים',4:'כל שבוע'};
+
+  const missing=sorted.filter(c=>{const f=parseInt(c.freq)||1;return(counts[c.name]||0)<f;});
+  const ok=sorted.filter(c=>{const f=parseInt(c.freq)||1;return(counts[c.name]||0)>=f;});
 
   let html='';
-  sorted.forEach(c=>{
-    const freq=parseInt(c.freq)||1;
-    const actual=counts[c.name]||0;
-    const ok=actual>=freq;
-    const missing=freq-actual;
-    const last=lastVisit[c.name];
-    const FREQTXT={1:'פעם בחודש',2:'כל שבועיים',3:'כל 10 ימים',4:'כל שבוע'};
 
-    // Calculate suggested next date
-    let suggestedDate='';
-    if(last){
-      const lastD=new Date(last);
-      lastD.setDate(lastD.getDate()+FREQ_DAYS[freq]);
-      suggestedDate=`${lastD.getFullYear()}-${String(lastD.getMonth()+1).padStart(2,'0')}-${String(lastD.getDate()).padStart(2,'0')}`;
-    } else {
-      // No last visit - suggest today
-      const t=new Date();
-      suggestedDate=`${t.getFullYear()}-${String(t.getMonth()+1).padStart(2,'0')}-${String(t.getDate()).padStart(2,'0')}`;
-    }
+  // ── Missing clients ──
+  if(missing.length){
+    html+=`<div style="padding:7px 14px;font-size:11px;font-weight:700;color:#991b1b;background:#fff1f2;border-bottom:1px solid #fecaca;">⚠️ חסרים ביקורים (${missing.length})</div>`;
+    html+=missing.map(c=>{
+      const freq=parseInt(c.freq)||1;
+      const actual=counts[c.name]||0;
+      const miss=freq-actual;
+      const last=lastVisit[c.name];
 
-    const lastTxt=last?`ביקור אחרון: ${parseInt(last.split('-')[2])} ${MONTHS[parseInt(last.split('-')[1])-1]}`:'לא ביקרת עדיין';
-    const sugParts=suggestedDate.split('-');
-    const sugTxt=`מוצע: ${parseInt(sugParts[2])} ${MONTHS[parseInt(sugParts[1])-1]}`;
+      // Calculate next suggested date: last + freq_days, keep same day of week
+      let nextDate='';
+      if(last){
+        const lastD=new Date(last);
+        const freqDays=FREQ_DAYS[freq];
+        // Add exact number of days
+        const next=new Date(lastD);
+        next.setDate(next.getDate()+freqDays);
+        nextDate=`${next.getFullYear()}-${String(next.getMonth()+1).padStart(2,'0')}-${String(next.getDate()).padStart(2,'0')}`;
+      } else {
+        // No history - suggest today
+        const t=new Date();
+        nextDate=`${t.getFullYear()}-${String(t.getMonth()+1).padStart(2,'0')}-${String(t.getDate()).padStart(2,'0')}`;
+      }
 
-    html+=`<div style="border-bottom:1px solid var(--gray3);padding:12px 14px;background:${ok?'#f0fdf4':'#fff'};">
-      <div style="display:flex;align-items:center;justify-content:space-between;gap:10px;">
-        <div style="flex:1;">
-          <div style="font-size:14px;font-weight:800;">${ok?'✅':'⚠️'} ${c.name}</div>
-          <div style="font-size:11px;color:var(--gray4);margin-top:3px;">${FREQTXT[freq]} · ${actual}/${freq} פעמים החודש</div>
-          <div style="font-size:11px;color:${ok?'var(--green)':'#c2410c'};font-weight:700;margin-top:2px;">${lastTxt} · ${sugTxt}</div>
+      const lastParts=last?last.split('-'):null;
+      const nextParts=nextDate.split('-');
+      const lastTxt=last?`אחרון: ${parseInt(lastParts[2])} ${MONTHS[parseInt(lastParts[1])-1]}`:'טרם ביקר';
+      const nextTxt=`${parseInt(nextParts[2])} ${MONTHS[parseInt(nextParts[1])-1]}`;
+
+      // Check if already scheduled on that date
+      const alreadyOnNext=D.cal[nextDate]&&D.cal[nextDate].some(e=>!e.isNote&&e.client===c.name);
+
+      return`<div style="border-bottom:1px solid var(--gray3);padding:11px 14px;background:#fff;">
+        <div style="display:flex;align-items:center;gap:10px;">
+          <div style="flex:1;min-width:0;">
+            <div style="font-size:13px;font-weight:800;">⚠️ ${c.name}</div>
+            <div style="font-size:11px;color:var(--gray4);margin-top:2px;">${FREQTXT[freq]} · ${actual}/${freq} החודש · ${lastTxt}</div>
+            <div style="font-size:12px;color:#c2410c;font-weight:700;margin-top:2px;">הבא: ${nextTxt}${alreadyOnNext?' ✅ שובץ כבר':''}</div>
+          </div>
+          ${!alreadyOnNext?`<button onclick="quickSchedule('${c.name.replace(/'/g,"\'")}','${nextDate}','${c.fixed||''}','${c.phone||''}')"
+            style="flex-shrink:0;padding:9px 16px;background:var(--green2);color:#fff;border:none;border-radius:9px;font-size:13px;font-weight:700;cursor:pointer;font-family:'Heebo',sans-serif;">
+            📅 שבץ
+          </button>`:`<span style="font-size:11px;color:var(--green);font-weight:700;">✅ שובץ</span>`}
         </div>
-        <button onclick="openSmartSchedule('${c.name.replace(/'/g,"\'")}','${suggestedDate}','${c.fixed||''}','${c.phone||''}')"
-          style="flex-shrink:0;padding:8px 14px;background:${ok?'var(--green3)':'var(--green2)'};color:${ok?'var(--green)':'#fff'};border:1px solid var(--green4);border-radius:9px;font-size:12px;font-weight:700;cursor:pointer;font-family:'Heebo',sans-serif;white-space:nowrap;">
-          ${ok?'+ עוד ביקור':'📅 שבץ'}
-        </button>
-      </div>
-    </div>`;
-  });
+      </div>`;
+    }).join('');
+  }
 
+  // ── OK clients ──
+  if(ok.length){
+    html+=`<div style="padding:7px 14px;font-size:11px;font-weight:700;color:var(--green);background:var(--green3);border-bottom:1px solid var(--green4);">✅ שובצו (${ok.length})</div>`;
+    html+=ok.map(c=>{
+      const freq=parseInt(c.freq)||1;
+      const actual=counts[c.name]||0;
+      const last=lastVisit[c.name];
+      const freqDays=FREQ_DAYS[freq];
+      let nextDate='';
+      if(last){
+        const next=new Date(last);next.setDate(next.getDate()+freqDays);
+        nextDate=`${next.getFullYear()}-${String(next.getMonth()+1).padStart(2,'0')}-${String(next.getDate()).padStart(2,'0')}`;
+      }
+      const nextParts=nextDate?nextDate.split('-'):null;
+      const nextTxt=nextParts?`הבא: ${parseInt(nextParts[2])} ${MONTHS[parseInt(nextParts[1])-1]}`:'';
+      const alreadyOnNext=nextDate&&D.cal[nextDate]&&D.cal[nextDate].some(e=>!e.isNote&&e.client===c.name);
+      return`<div style="border-bottom:1px solid var(--green4);padding:10px 14px;background:var(--green3);display:flex;align-items:center;justify-content:space-between;">
+        <div>
+          <div style="font-size:13px;font-weight:800;">✅ ${c.name}</div>
+          <div style="font-size:11px;color:var(--gray4);margin-top:2px;">${actual}/${freq} פעמים · ${nextTxt}</div>
+        </div>
+        ${nextDate&&!alreadyOnNext?`<button onclick="quickSchedule('${c.name.replace(/'/g,"\'")}','${nextDate}','${c.fixed||''}','${c.phone||''}')"
+          style="padding:6px 12px;background:rgba(255,255,255,.7);color:var(--green);border:1px solid var(--green4);border-radius:8px;font-size:11px;font-weight:700;cursor:pointer;font-family:'Heebo',sans-serif;">
+          + הוסף ביקור
+        </button>`:''}
+      </div>`;
+    }).join('');
+  }
+
+  if(!html)html='<div style="padding:20px;text-align:center;color:var(--gray4);">אין לקוחות קבועים</div>';
   document.getElementById('planner-body').innerHTML=html;
   openM('m-planner');
 }
 
-let _schedClient='',_schedPhone='';
-function openSmartSchedule(name,date,price,phone){
-  _schedClient=name; _schedPhone=phone;
-  document.getElementById('sched-title').textContent=`📅 שיבוץ — ${name}`;
-  document.getElementById('sched-date').value=date;
-  document.getElementById('sched-price').value=price;
-  document.getElementById('sched-time').value='09:00';
-  // Info about last visit
-  const lastVisit=Object.entries(D.cal||{}).filter(([k,evs])=>evs.some(e=>!e.isNote&&!e.cancelled&&e.done&&e.client===name)).map(([k])=>k).sort().pop();
-  const c=D.clients.find(x=>x.name===name);
-  const freq=parseInt(c?.freq)||1;
-  const FREQTXT={1:'פעם בחודש',2:'כל שבועיים',3:'כל 10 ימים',4:'כל שבוע'};
-  const lastTxt=lastVisit?`ביקור אחרון: ${parseInt(lastVisit.split('-')[2])} ${MONTHS[parseInt(lastVisit.split('-')[1])-1]} ${lastVisit.split('-')[0]}`:'ביקור ראשון';
-  document.getElementById('sched-info').textContent=`👤 ${name} · ${FREQTXT[freq]} · ${lastTxt}`;
-  closeM('m-planner');
-  openM('m-smart-schedule');
-}
-
-function confirmSmartSchedule(){
-  const date=document.getElementById('sched-date').value;
-  const time=document.getElementById('sched-time').value;
-  const price=document.getElementById('sched-price').value;
-  if(!date){toast('בחר תאריך');return;}
+// One-click schedule: adds immediately without modal
+function quickSchedule(name, date, price, phone){
+  if(!date){toast('לא ניתן לחשב תאריך');return;}
   if(!D.cal[date])D.cal[date]=[];
-  const exists=D.cal[date].some(e=>!e.isNote&&e.client===_schedClient);
-  if(exists){toast('הלקוח כבר שובץ ביום זה!');return;}
-  const c=D.clients.find(x=>x.name===_schedClient);
-  D.cal[date].push({client:_schedClient,desc:'',time,price,phone:_schedPhone,done:false,paid:false,isNote:false,cancelled:false});
+  if(D.cal[date].some(e=>!e.isNote&&e.client===name)){toast(`${name} כבר שובץ ביום זה`);return;}
+  const c=D.clients.find(x=>x.name===name);
+  D.cal[date].push({client:name,desc:'',time:c&&c.time?c.time:'09:00',price:price||'',phone:phone||'',done:false,paid:false,isNote:false,cancelled:false});
   saveData();renderCal();updateStats();
-  closeM('m-smart-schedule');
   const parts=date.split('-');
-  toast(`✅ ${_schedClient} שובץ ל-${parseInt(parts[2])} ${MONTHS[parseInt(parts[1])-1]}!`);
-  // Jump to that month in calendar
-  calDate=new Date(parseInt(parts[0]),parseInt(parts[1])-1,1);
-  renderCal();
+  toast(`✅ ${name} שובץ ל-${parseInt(parts[2])} ${MONTHS[parseInt(parts[1])-1]}!`);
+  // Refresh planner
+  openMonthPlanner();
 }
 
+// Legacy
+let _schedClient='',_schedPhone='';
+function openSmartSchedule(name,date,price,phone){ quickSchedule(name,date,price,phone); }
+function confirmSmartSchedule(){}
 
-function quickAddFromPlanner(name,fixed){
-  // Pre-fill event modal with client name and open it
-  openAddEvent(window._selDate||null);
-  setTimeout(()=>{
-    const search=document.getElementById('ev-search');
-    const sel=document.getElementById('ev-sel');
-    if(search)search.value=name;
-    if(sel)sel.value=name;
-    if(fixed){const p=fixed.replace(/[^0-9]/g,'');if(p&&document.getElementById('ev-price'))document.getElementById('ev-price').value=p;}
-  },100);
-}
 
 function addNoteToDay(key){
   const text = prompt('הערה ליום זה (לדוגמא: לקנות פרחים, להביא דשן...):');
