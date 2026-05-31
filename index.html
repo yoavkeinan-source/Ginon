@@ -1513,7 +1513,7 @@ function openMonthPlanner(){
     return a.name.localeCompare(b.name);
   });
 
-  const FREQ_DAYS={1:30,2:14,3:10,4:7};
+  const FREQ_DAYS={1:28,2:14,3:14,4:7}; // multiples of 7 to keep same day of week
   const FREQTXT={1:'פעם בחודש',2:'כל שבועיים',3:'כל 10 ימים',4:'כל שבוע'};
 
   const missing=sorted.filter(c=>{const f=parseInt(c.freq)||1;return(counts[c.name]||0)<f;});
@@ -1531,8 +1531,11 @@ function openMonthPlanner(){
       const refDate=lastScheduled[c.name];
       let nextDate='';
       if(refDate){
-        const next=new Date(refDate);
-        next.setDate(next.getDate()+FREQ_DAYS[freq]);
+        const refD=new Date(refDate);
+        const freqDays=FREQ_DAYS[freq];
+        // Add exact number of days — keeps same day of week naturally (7/14/21 are multiples of 7)
+        const next=new Date(refD);
+        next.setDate(next.getDate()+freqDays);
         nextDate=`${next.getFullYear()}-${String(next.getMonth()+1).padStart(2,'0')}-${String(next.getDate()).padStart(2,'0')}`;
       } else {
         const t=new Date(y,m,1);
@@ -1572,7 +1575,7 @@ function openMonthPlanner(){
       const actual=counts[c.name]||0;
       const refDate=lastScheduled[c.name];
       let nextDate='';
-      if(refDate){const next=new Date(refDate);next.setDate(next.getDate()+FREQ_DAYS[freq]);nextDate=`${next.getFullYear()}-${String(next.getMonth()+1).padStart(2,'0')}-${String(next.getDate()).padStart(2,'0')}`;}
+      if(refDate){const refD2=new Date(refDate);refD2.setDate(refD2.getDate()+FREQ_DAYS[freq]);nextDate=`${refD2.getFullYear()}-${String(refD2.getMonth()+1).padStart(2,'0')}-${String(refD2.getDate()).padStart(2,'0')}`;}
       const nextParts=nextDate?nextDate.split('-'):null;
       const nextTxt=nextParts?`הבא: ${parseInt(nextParts[2])} ${MONTHS[parseInt(nextParts[1])-1]}`:'';
       const alreadyOnNext=nextDate&&D.cal[nextDate]&&D.cal[nextDate].some(e=>!e.isNote&&e.client===c.name);
