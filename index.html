@@ -1479,27 +1479,17 @@ function searchClientInCal(q){
 
 function openMonthPlanner(){
   const y=calDate.getFullYear(),m=calDate.getMonth();
-  document.getElementById('planner-month-title').textContent=`📅 ${MONTHS[m]} ${y}`;
+  document.getElementById('planner-month-title').textContent=`${MONTHS[m]} ${y} — לקוחות חודשיים`;
   const mp=`${y}-${String(m+1).padStart(2,'0')}`;
 
-  // Count visits per client in the DISPLAYED month
+  // Count visits per client in displayed month
   const counts={};
   Object.entries(D.cal||{}).forEach(([key,evs])=>{
     if(!key.startsWith(mp))return;
     evs.forEach(ev=>{if(!ev.isNote&&!ev.cancelled)counts[ev.client]=(counts[ev.client]||0)+1;});
   });
 
-  // Find last DONE visit per client (before or in this month)
-  const lastVisit={};
-  Object.entries(D.cal||{}).forEach(([key,evs])=>{
-    evs.forEach(ev=>{
-      if(!ev.isNote&&!ev.cancelled&&ev.done&&ev.client){
-        if(!lastVisit[ev.client]||key>lastVisit[ev.client])lastVisit[ev.client]=key;
-      }
-    });
-  });
-
-  // Also find LAST SCHEDULED visit (done or not) — to calculate next from
+  // Last scheduled date per client (anywhere)
   const lastScheduled={};
   Object.entries(D.cal||{}).forEach(([key,evs])=>{
     evs.forEach(ev=>{
@@ -1511,7 +1501,7 @@ function openMonthPlanner(){
 
   const monthly=D.clients.filter(c=>c.type==='חודשי');
   if(!monthly.length){
-    document.getElementById('planner-body').innerHTML='<div style="padding:20px;text-align:center;color:var(--gray4);">אין לקוחות קבועים</div>';
+    document.getElementById('planner-body').innerHTML='<div style="padding:20px;text-align:center;color:var(--gray4);">אין לקוחות קבועים — הוסף לקוחות עם חוזה חודשי</div>';
     openM('m-planner');return;
   }
 
@@ -1531,14 +1521,14 @@ function openMonthPlanner(){
 
   let html='';
 
+  // ── MISSING ──
   if(missing.length){
     html+=`<div style="padding:7px 14px;font-size:11px;font-weight:700;color:#991b1b;background:#fff1f2;border-bottom:1px solid #fecaca;">⚠️ חסרים ביקורים (${missing.length})</div>`;
     html+=missing.map(c=>{
       const freq=parseInt(c.freq)||1;
       const actual=counts[c.name]||0;
       const miss=freq-actual;
-      // Calculate from LAST SCHEDULED (not just done) — so yuli follows yuni
-      const refDate = lastScheduled[c.name];
+      const refDate=lastScheduled[c.name];
       let nextDate='';
       if(refDate){
         const next=new Date(refDate);
@@ -1546,11 +1536,9 @@ function openMonthPlanner(){
         nextDate=`${next.getFullYear()}-${String(next.getMonth()+1).padStart(2,'0')}-${String(next.getDate()).padStart(2,'0')}`;
       } else {
         const t=new Date(y,m,1);
-        nextDate=`${t.getFullYear()}-${String(t.getMonth()+1).padStart(2,'0')}-${String(t.getDate()).padStart(2,'0')}`;
+        nextDate=`${t.getFullYear()}-${String(t.getMonth()+1).padStart(2,'0')}-01`;
       }
-      const refParts=refDate?refDate.split('-'):null;
       const nextParts=nextDate.split('-');
-      const refTxt=refDate?`אחרון: ${parseInt(refParts[2])} ${MONTHS[parseInt(refParts[1])-1]}`:'לא שובץ עדיין';
       const nextTxt=`${parseInt(nextParts[2])} ${MONTHS[parseInt(nextParts[1])-1]}`;
       const alreadyOnNext=D.cal[nextDate]&&D.cal[nextDate].some(e=>!e.isNote&&e.client===c.name);
 
@@ -1558,17 +1546,17 @@ function openMonthPlanner(){
         <div style="display:flex;align-items:center;gap:8px;">
           <div style="flex:1;min-width:0;">
             <div style="font-size:13px;font-weight:800;">⚠️ ${c.name}</div>
-            <div style="font-size:11px;color:var(--gray4);margin-top:2px;">${FREQTXT[freq]} · ${actual}/${freq} ב${MONTHS[m]} · ${refTxt}</div>
-            <div style="font-size:12px;color:#c2410c;font-weight:700;margin-top:2px;">מוצע: ${nextTxt}${alreadyOnNext?' ✅ שובץ':''}</div>
+            <div style="font-size:11px;color:var(--gray4);margin-top:2px;">${actual}/${freq} פעמים · ${c.fixed?c.fixed+' ₪':''}</div>
+            <div style="font-size:11px;color:#c2410c;font-weight:700;margin-top:2px;">חסר ${miss} ביקור${miss>1?'ים':''} · מוצע: ${nextTxt}${alreadyOnNext?' ✅':''}</div>
           </div>
           <div style="display:flex;gap:5px;flex-shrink:0;">
             ${!alreadyOnNext?`<button onclick="quickSchedule('${c.name.replace(/'/g,"\'")}','${nextDate}','${c.fixed||''}','${c.phone||''}')"
               style="padding:8px 13px;background:var(--green2);color:#fff;border:none;border-radius:9px;font-size:12px;font-weight:700;cursor:pointer;font-family:'Heebo',sans-serif;">
               📅 שבץ
-            </button>`:`<span style="font-size:11px;color:var(--green);font-weight:700;padding:8px;">✅</span>`}
+            </button>`:''}
             <button onclick="quickAddFromPlanner('${c.name.replace(/'/g,"\'")}','${c.fixed||''}');closeM('m-planner');"
-              style="padding:8px 10px;background:var(--gray2);color:var(--dark);border:1px solid var(--gray3);border-radius:9px;font-size:12px;font-weight:700;cursor:pointer;font-family:'Heebo',sans-serif;">
-              ✏️
+              style="padding:8px 12px;background:var(--green2);color:#fff;border:none;border-radius:9px;font-size:12px;font-weight:700;cursor:pointer;font-family:'Heebo',sans-serif;">
+              + הוסף
             </button>
           </div>
         </div>
@@ -1576,6 +1564,7 @@ function openMonthPlanner(){
     }).join('');
   }
 
+  // ── OK ──
   if(ok.length){
     html+=`<div style="padding:7px 14px;font-size:11px;font-weight:700;color:var(--green);background:var(--green3);border-bottom:1px solid var(--green4);">✅ שובצו (${ok.length})</div>`;
     html+=ok.map(c=>{
@@ -1594,12 +1583,12 @@ function openMonthPlanner(){
         </div>
         <div style="display:flex;gap:5px;">
           ${nextDate&&!alreadyOnNext?`<button onclick="quickSchedule('${c.name.replace(/'/g,"\'")}','${nextDate}','${c.fixed||''}','${c.phone||''}')"
-            style="padding:6px 10px;background:rgba(255,255,255,.8);color:var(--green);border:1px solid var(--green4);border-radius:8px;font-size:11px;font-weight:700;cursor:pointer;font-family:'Heebo',sans-serif;">
+            style="padding:6px 10px;background:#fff;color:var(--green);border:1px solid var(--green4);border-radius:8px;font-size:11px;font-weight:700;cursor:pointer;font-family:'Heebo',sans-serif;">
             📅 הבא
           </button>`:''}
           <button onclick="quickAddFromPlanner('${c.name.replace(/'/g,"\'")}','${c.fixed||''}');closeM('m-planner');"
-            style="padding:6px 10px;background:rgba(255,255,255,.8);color:var(--dark);border:1px solid var(--gray3);border-radius:8px;font-size:11px;font-weight:700;cursor:pointer;font-family:'Heebo',sans-serif;">
-            ✏️
+            style="padding:6px 10px;background:#fff;color:var(--green);border:1px solid var(--green4);border-radius:8px;font-size:11px;font-weight:700;cursor:pointer;font-family:'Heebo',sans-serif;">
+            + הוסף
           </button>
         </div>
       </div>`;
