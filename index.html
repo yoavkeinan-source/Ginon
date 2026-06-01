@@ -475,28 +475,88 @@ tr:last-child td{border-bottom:none;}
 
     <!-- WA -->
     <div class="sec" id="s-wa">
+
+      <!-- שליחה לקוח בודד -->
       <div class="card">
-        <div class="ch"><h3>📱 שליחת ווטסאפ</h3></div>
-        <div style="padding:14px;">
-          <div class="fi" style="margin-bottom:10px;"><label>בחר לקוח</label><select id="wa-sel" onchange="updWAPreview()"><option value="">-- בחר --</option></select></div>
-          <div class="fi" style="margin-bottom:10px;"><label>סוג הודעה</label>
+        <div class="ch"><h3>📱 הודעה ללקוח בודד</h3></div>
+        <div style="padding:14px;display:flex;flex-direction:column;gap:10px;">
+          <div class="fi"><label>בחר לקוח</label><select id="wa-sel" onchange="updWAPreview()"><option value="">-- בחר לקוח --</option></select></div>
+          <div class="fi"><label>סוג הודעה</label>
             <select id="wa-type" onchange="updWAPreview()">
               <option value="visit">תזכורת ביקור מחר</option>
               <option value="debt">תזכורת תשלום</option>
               <option value="done">אישור סיום עבודה</option>
+              <option value="vacation">הודעת היעדרות</option>
               <option value="custom">הודעה חופשית</option>
             </select>
           </div>
-          <div class="fi" id="wa-custom-wrap" style="margin-bottom:10px;display:none;"><label>הודעה</label><textarea id="wa-custom" rows="3" onchange="updWAPreview()"></textarea></div>
-          <div id="wa-preview" style="background:#dcf8c6;border:1px solid #bbf7d0;border-radius:10px;padding:11px 13px;font-size:12.5px;line-height:1.6;margin-bottom:11px;display:none;"></div>
-          <button class="btn btn-g" style="width:100%;justify-content:center;margin-bottom:9px;" onclick="sendWA()">📱 פתח ווטסאפ</button>
-          <div style="border-top:1px solid var(--gray3);padding-top:11px;margin-top:4px;">
-            <div style="font-size:13px;font-weight:700;margin-bottom:9px;color:var(--gray);">שלח לכל הלקוחות:</div>
-            <button class="btn btn-gray" style="width:100%;justify-content:center;margin-bottom:8px;" onclick="sendWAAll('visit')">📱 תזכורת ביקור לכולם</button>
-            <button class="btn btn-gray" style="width:100%;justify-content:center;" onclick="sendWAAll('debt')">📱 תזכורת תשלום לכולם</button>
+          <div id="wa-preview" style="background:#dcf8c6;border:1px solid #a7f3d0;border-radius:10px;padding:11px 13px;font-size:13px;line-height:1.7;white-space:pre-wrap;display:none;"></div>
+          <div class="fi" id="wa-edit-wrap" style="display:none;"><label>✏️ ערוך לפני שליחה</label><textarea id="wa-edit-text" rows="5" style="font-size:13px;line-height:1.6;" oninput="syncWAEdit()"></textarea></div>
+          <div style="display:flex;gap:8px;">
+            <button class="btn btn-gray btn-sm" onclick="toggleWAEdit()" id="wa-edit-btn">✏️ ערוך</button>
+            <button class="btn btn-g" style="flex:1;justify-content:center;" onclick="sendWA()">📱 פתח ווטסאפ</button>
           </div>
         </div>
       </div>
+
+      <!-- שליחה לכולם -->
+      <div class="card">
+        <div class="ch"><h3>📢 שליחה לקבוצת לקוחות</h3></div>
+        <div style="padding:14px;display:flex;flex-direction:column;gap:10px;">
+
+          <!-- בחירת קבוצה -->
+          <div class="fi"><label>שלח ל...</label>
+            <select id="wa-group" onchange="updWAAllPreview();updWAAllCount()">
+              <option value="all">כל הלקוחות</option>
+              <option value="חודשי">לקוחות חודשיים בלבד</option>
+              <option value="רבעוני">לקוחות רבעוניים בלבד</option>
+              <option value="חד פעמי">לקוחות חד-פעמיים בלבד</option>
+            </select>
+          </div>
+
+          <!-- תבניות מהירות -->
+          <div class="fi"><label>תבנית מהירה</label>
+            <select id="wa-all-tpl" onchange="loadWAAllTpl()">
+              <option value="">-- בחר תבנית --</option>
+              <option value="visit">📅 תזכורת ביקור מחר</option>
+              <option value="debt">💰 תזכורת תשלום</option>
+              <option value="vacation">🌴 הודעת היעדרות / חופשה</option>
+              <option value="seasonal">🌸 ברכה עונתית</option>
+              <option value="promo">🎁 מבצע / הצעה</option>
+            </select>
+          </div>
+
+          <!-- עריכת הודעה -->
+          <div class="fi"><label>✏️ הודעה (ניתנת לעריכה מלאה)</label>
+            <textarea id="wa-all-text" rows="6" style="font-size:13px;line-height:1.7;" placeholder="כתוב את ההודעה כאן..." oninput="updWAAllCount();updWAAllPreview()"></textarea>
+          </div>
+
+          <!-- תצוגה מקדימה -->
+          <div id="wa-all-preview" style="background:#dcf8c6;border:1px solid #a7f3d0;border-radius:10px;padding:11px 13px;font-size:13px;line-height:1.7;white-space:pre-wrap;display:none;"></div>
+
+          <!-- מונה וכפתור -->
+          <div style="display:flex;align-items:center;justify-content:space-between;gap:8px;">
+            <span id="wa-all-count" style="font-size:12px;color:var(--gray4);font-weight:600;"></span>
+            <button class="btn btn-g" style="flex:1;justify-content:center;" onclick="sendWAAllCustom()">📢 שלח לכולם</button>
+          </div>
+          <div style="font-size:11px;color:var(--gray4);background:var(--gray2);border-radius:7px;padding:7px 10px;">
+            💡 הווטסאפ ייפתח בנפרד לכל לקוח — כל הודעה עם שם אישי. בין שליחה לשליחה יש השהייה קצרה.
+          </div>
+        </div>
+      </div>
+
+      <!-- עריכת תבניות -->
+      <div class="card">
+        <div class="ch"><h3>📝 עריכת תבניות הודעות</h3><button class="btn btn-g btn-sm" onclick="saveMsgTpls()">💾 שמור</button></div>
+        <div style="padding:14px;display:flex;flex-direction:column;gap:12px;">
+          <div class="fi"><label>📅 תזכורת ביקור מחר</label><textarea id="tpl-visit" rows="3" style="font-size:12px;line-height:1.6;"></textarea></div>
+          <div class="fi"><label>💰 תזכורת תשלום</label><textarea id="tpl-debt" rows="3" style="font-size:12px;line-height:1.6;"></textarea></div>
+          <div class="fi"><label>✅ אישור סיום עבודה</label><textarea id="tpl-done" rows="3" style="font-size:12px;line-height:1.6;"></textarea></div>
+          <div class="fi"><label>🌴 היעדרות / חופשה</label><textarea id="tpl-vacation" rows="3" style="font-size:12px;line-height:1.6;"></textarea></div>
+          <div style="font-size:11px;color:var(--gray4);background:var(--gray2);border-radius:7px;padding:7px 10px;">💡 השתמש ב-<b>{שם}</b> כדי להוסיף את שם הלקוח באופן אוטומטי</div>
+        </div>
+      </div>
+
     </div>
 
     <!-- SETTINGS -->
@@ -2044,46 +2104,198 @@ function prTab(tab,el){
 }
 
 // ═══════════════ WHATSAPP ═══════════════
+
+// ברירות מחדל לתבניות
+const DEFAULT_TPLS={
+  visit:'שלום {שם}! 🌿\nרציתי להזכיר שמחר אני מגיע לגינה שלך לביצוע עבודת גינון.\nלשאלות אפשר לחזור אליי. תודה! 😊',
+  debt:'שלום {שם}! 🌿\nרציתי להזכיר שיש חשבון פתוח ממתין לתשלום.\nאפשר לסגור בנוחות — תודה!',
+  done:'שלום {שם}! 🌿\nהעבודה בגינה שלך הושלמה בהצלחה!\nמקווה שאתה מרוצה. לכל שאלה אני זמין.',
+  vacation:'שלום {שם}! 🌴\nרציתי להודיע שאני בחופשה ולא אוכל להגיע בתאריכים הקרובים.\nאחזור בקרוב ואצור קשר לתיאום המשך. תודה על ההבנה! 😊',
+};
+
+function getTpls(){
+  return Object.assign({},DEFAULT_TPLS,D.msgTpls||{});
+}
+
+function applyName(tpl,name){
+  return tpl.replace(/\{שם\}/g,name||'');
+}
+
+function loadMsgTpls(){
+  const t=getTpls();
+  ['visit','debt','done','vacation'].forEach(k=>{
+    const el=document.getElementById('tpl-'+k);
+    if(el)el.value=t[k]||'';
+  });
+}
+
+function saveMsgTpls(){
+  D.msgTpls={};
+  ['visit','debt','done','vacation'].forEach(k=>{
+    const el=document.getElementById('tpl-'+k);
+    if(el)D.msgTpls[k]=el.value;
+  });
+  saveData();toast('✅ התבניות נשמרו!');
+  updWAPreview();updWAAllPreview();
+}
+
 function buildMsg(type,name){
-  const custom=(document.getElementById('wa-custom')||{}).value||'';
-  return{
-    visit:`שלום ${name}! 🌿\nרציתי להזכיר שמחר אני מגיע לגינה שלך לביצוע עבודת גינון.\nלשאלות אפשר לחזור אליי. תודה! 😊`,
-    debt:`שלום ${name}! 🌿\nרציתי להזכיר שיש חשבון פתוח ממתין לתשלום.\nאפשר לסגור בנוחות — תודה!`,
-    done:`שלום ${name}! 🌿\nהעבודה בגינה שלך הושלמה בהצלחה!\nמקווה שאתה מרוצה. לכל שאלה אני זמין.`,
-    custom,
-  }[type]||'';
+  const t=getTpls();
+  if(type==='custom'){
+    const el=document.getElementById('wa-edit-text');
+    return el?el.value:'';
+  }
+  // חישוב חוב לתבנית תשלום
+  let tpl=applyName(t[type]||'',name);
+  if(type==='debt'){
+    let totalDebt=0;
+    Object.values(D.cal||{}).forEach(evs=>{
+      evs.forEach(ev=>{
+        if(ev.isNote||ev.cancelled||ev.paid||ev.client!==name)return;
+        const p=parseFloat((ev.price||'').toString().replace(/[^0-9.]/g,''))||0;
+        const mat=parseFloat((ev.materials||'').toString().replace(/[^0-9.]/g,''))||0;
+        const prof=parseFloat((ev.profit||'').toString().replace(/[^0-9.]/g,''))||0;
+        if(ev.done)totalDebt+=p+mat+prof;
+      });
+    });
+    if(totalDebt>0)tpl=tpl.replace('\nאפשר',`\nסה"כ חוב: *${totalDebt.toLocaleString()} ₪*\nאפשר`);
+  }
+  return tpl;
 }
-function openWADirect(phone,name,type){
-  phone=phone.replace(/[^0-9]/g,'');if(phone.startsWith('0'))phone='972'+phone.slice(1);
-  const msg=buildMsg(type,name);
-  window.open(`https://wa.me/${phone||'972500000000'}?text=${encodeURIComponent(msg)}`,'_blank');
+
+function openWADirect(phone,name,type,customMsg){
+  phone=(phone||'').replace(/[^0-9]/g,'');
+  if(phone.startsWith('0'))phone='972'+phone.slice(1);
+  const msg=customMsg!==undefined?applyName(customMsg,name):buildMsg(type,name);
+  window.open('https://wa.me/'+(phone||'972500000000')+'?text='+encodeURIComponent(msg),'_blank');
 }
+
 function refreshWASel(){
   const sel=document.getElementById('wa-sel');
   if(!sel)return;
-  sel.innerHTML='<option value="">-- בחר לקוח --</option>'+D.clients.map(c=>`<option value="${c.phone}">${c.name}</option>`).join('');
+  sel.innerHTML='<option value="">-- בחר לקוח --</option>'+D.clients.map(c=>`<option value="${c.phone||''}" data-name="${c.name}">${c.name}</option>`).join('');
+  loadMsgTpls();
+  updWAAllCount();
 }
+
+let _waEditOpen=false;
 function updWAPreview(){
   const selEl=document.getElementById('wa-sel');
   const type=document.getElementById('wa-type').value;
-  const customWrap=document.getElementById('wa-custom-wrap');
-  customWrap.style.display=type==='custom'?'flex':'none';
-  if(!selEl.value){document.getElementById('wa-preview').style.display='none';return;}
-  const clientName=selEl.options[selEl.selectedIndex].text;
-  const msg=buildMsg(type,clientName);
-  const prev=document.getElementById('wa-preview');prev.textContent=msg;prev.style.display='block';
+  const prev=document.getElementById('wa-preview');
+  const editWrap=document.getElementById('wa-edit-wrap');
+  if(!selEl||!selEl.value){if(prev)prev.style.display='none';return;}
+  const name=selEl.options[selEl.selectedIndex].dataset.name||selEl.options[selEl.selectedIndex].text;
+  const msg=buildMsg(type,name);
+  if(prev){prev.textContent=msg;prev.style.display='block';}
+  if(_waEditOpen){
+    const et=document.getElementById('wa-edit-text');
+    if(et)et.value=msg;
+  }
+  if(editWrap)editWrap.style.display=_waEditOpen?'flex':'none';
 }
+
+function toggleWAEdit(){
+  _waEditOpen=!_waEditOpen;
+  const btn=document.getElementById('wa-edit-btn');
+  const wrap=document.getElementById('wa-edit-wrap');
+  const prev=document.getElementById('wa-preview');
+  if(btn)btn.textContent=_waEditOpen?'👁 תצוגה':'✏️ ערוך';
+  if(wrap)wrap.style.display=_waEditOpen?'flex':'none';
+  if(_waEditOpen){
+    const selEl=document.getElementById('wa-sel');
+    const type=document.getElementById('wa-type').value;
+    const name=selEl&&selEl.value?(selEl.options[selEl.selectedIndex].dataset.name||''):'';
+    const msg=buildMsg(type,name);
+    const et=document.getElementById('wa-edit-text');
+    if(et)et.value=msg;
+    if(prev)prev.style.display='none';
+  } else {
+    if(prev)prev.style.display='block';
+  }
+}
+
+function syncWAEdit(){
+  // keep edit textarea as source of truth — nothing to sync live
+}
+
 function sendWA(){
   const sel=document.getElementById('wa-sel');
-  if(!sel.value){toast('בחר לקוח');return;}
-  const phone=sel.value,name=sel.options[sel.selectedIndex].text;
+  if(!sel||!sel.value){toast('בחר לקוח');return;}
+  const phone=sel.value;
+  const name=sel.options[sel.selectedIndex].dataset.name||sel.options[sel.selectedIndex].text;
   const type=document.getElementById('wa-type').value;
-  openWADirect(phone,name,type);
+  if(_waEditOpen){
+    const et=document.getElementById('wa-edit-text');
+    openWADirect(phone,name,type,et?et.value:'');
+  } else {
+    openWADirect(phone,name,type);
+  }
 }
+
+// שליחה לכולם
+const WA_ALL_TPLS={
+  visit:'',// ייטען מהתבניות
+  debt:'',
+  vacation:'',
+  seasonal:'שלום {שם}! 🌸\nברכות עונת האביב! מקווה שהגינה שלך פורחת יפה.\nנשמח לתת מענה לכל צורך גינוני. נדבר בקרוב! 🌿',
+  promo:'שלום {שם}! 🎁\nיש לנו עבורך הצעה מיוחדת לעונה הקרובה.\nצרו קשר לפרטים נוספים. תודה! 😊',
+};
+
+function loadWAAllTpl(){
+  const tpl=document.getElementById('wa-all-tpl').value;
+  if(!tpl)return;
+  const t=getTpls();
+  let txt='';
+  if(t[tpl])txt=t[tpl]; // מהתבניות הנשמרות
+  else if(WA_ALL_TPLS[tpl])txt=WA_ALL_TPLS[tpl];
+  const ta=document.getElementById('wa-all-text');
+  if(ta){ta.value=txt;updWAAllCount();updWAAllPreview();}
+}
+
+function updWAAllCount(){
+  const group=document.getElementById('wa-group');
+  const cnt=document.getElementById('wa-all-count');
+  if(!group||!cnt)return;
+  const gv=group.value;
+  const clients=gv==='all'?D.clients:D.clients.filter(c=>c.type===gv);
+  const withPhone=clients.filter(c=>c.phone);
+  cnt.textContent=`${withPhone.length} לקוחות ישלחו הודעה`;
+}
+
+function updWAAllPreview(){
+  const ta=document.getElementById('wa-all-text');
+  const prev=document.getElementById('wa-all-preview');
+  if(!ta||!prev)return;
+  const txt=ta.value.trim();
+  if(!txt){prev.style.display='none';return;}
+  // הצג דוגמה עם שם ראשון
+  const first=D.clients.find(c=>c.phone);
+  const sample=first?applyName(txt,first.name):txt;
+  prev.textContent='לדוגמה:\n'+sample;
+  prev.style.display='block';
+}
+
+function sendWAAllCustom(){
+  const group=(document.getElementById('wa-group')||{}).value||'all';
+  const txt=(document.getElementById('wa-all-text')||{}).value||'';
+  if(!txt.trim()){toast('כתוב הודעה לפני השליחה');return;}
+  const clients=group==='all'?D.clients:D.clients.filter(c=>c.type===group);
+  const withPhone=clients.filter(c=>c.phone);
+  if(!withPhone.length){toast('אין לקוחות עם מספר טלפון בקבוצה זו');return;}
+  if(!confirm(`שליחה ל-${withPhone.length} לקוחות. להמשיך?`))return;
+  toast(`שולח ל-${withPhone.length} לקוחות...`);
+  withPhone.forEach((c,i)=>{
+    setTimeout(()=>openWADirect(c.phone,c.name,null,txt),i*1600);
+  });
+}
+
+// נשמר לתאימות לאחור
 function sendWAAll(type){
   if(!D.clients.length){toast('אין לקוחות');return;}
-  toast(`שולח ל-${D.clients.length} לקוחות...`);
-  D.clients.forEach((c,i)=>{
+  const withPhone=D.clients.filter(c=>c.phone);
+  toast(`שולח ל-${withPhone.length} לקוחות...`);
+  withPhone.forEach((c,i)=>{
     setTimeout(()=>openWADirect(c.phone,c.name,type),i*1500);
   });
 }
@@ -2536,26 +2748,7 @@ function addTrimSchedule(){}
 function renderTrimList(){}
 function openTrimSection(){ renderTrimClientsList(); }
 
-// ═══════════════ WA WITH DEBT ═══════════════
-function buildMsg(type,name,phone){
-  const custom=(document.getElementById('wa-custom')||{}).value||'';
-  // Calculate total debt for this client
-  let totalDebt=0;
-  Object.values(D.cal||{}).forEach(evs=>{
-    evs.forEach(ev=>{
-      if(ev.isNote||ev.cancelled||ev.paid||ev.client!==name)return;
-      const p=parseFloat((ev.price||'').toString().replace(/[^0-9.]/g,''))||0;
-      if(ev.done)totalDebt+=p;
-    });
-  });
-  const debtTxt=totalDebt>0?`\nסה"כ חוב: *${totalDebt.toLocaleString()} ₪*`:'';
-  return{
-    visit:`שלום ${name}! 🌿\nרציתי להזכיר שמחר אני מגיע לגינה שלך לביצוע עבודת גינון.\nלשאלות אפשר לחזור אליי. תודה! 😊`,
-    debt:`שלום ${name}! 🌿\nרציתי להזכיר שיש חשבון פתוח ממתין לתשלום.${debtTxt}\nאפשר לסגור בנוחות — תודה!`,
-    done:`שלום ${name}! 🌿\nהעבודה בגינה שלך הושלמה בהצלחה!\nמקווה שאתה מרוצה. לכל שאלה אני זמין.`,
-    custom,
-  }[type]||'';
-}
+// ═══════════════ WA WITH DEBT (merged into buildMsg above) ═══════════════
 
 
 
