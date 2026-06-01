@@ -1383,9 +1383,8 @@ function renderCal(){
       if(ev.cancelled){canc++;return;}
       visits++;
       const p=parseFloat((ev.price||'').toString().replace(/[^0-9.]/g,''))||0;
-      const mat=parseFloat((ev.materials||'').toString().replace(/[^0-9.]/g,''))||0;
       const prof=parseFloat((ev.profit||'').toString().replace(/[^0-9.]/g,''))||0;
-      const total=p+mat+prof;
+      const total=p+prof; // לוז חודשי: ללא עלות חומר, רק שירות + רווח
       if(total>0){exp+=total;if(ev.paid)inc+=total;else if(ev.done)unpaidCal+=total;}
     });
   });
