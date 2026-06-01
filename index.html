@@ -1064,12 +1064,13 @@ function updateStats(){
       if(ev.isNote)return;
       if(ev.cancelled){cancelled++;return;}
       const p=parseFloat((ev.price||'').toString().replace(/[^0-9.]/g,''))||0;
+      const mat=parseFloat((ev.materials||'').toString().replace(/[^0-9.]/g,''))||0;
       const prof=parseFloat((ev.profit||'').toString().replace(/[^0-9.]/g,''))||0;
-      const total=p+prof;
+      const total=p+mat+prof;
       if(total>0){
         expected+=total;
         if(ev.paid){income+=total;}
-        else if(ev.done){unpaid+=p+prof;} // רק בוצע אך לא שולם
+        else if(ev.done){unpaid+=total;} // רק בוצע אך לא שולם
       }
     });
   });
@@ -1114,7 +1115,10 @@ function renderDash(){
     evs.forEach(ev=>{
       if(!ev.isNote&&ev.done&&!ev.paid&&!ev.cancelled){
         const p=parseFloat((ev.price||'').toString().replace(/[^0-9.]/g,''))||0;
-        if(p>0){const pts=k.split('-');const idx=evs.indexOf(ev);unpaidEvs.push({...ev,key:k,idx:idx,dateLabel:pts[2]+'/'+pts[1]});}
+        const mat=parseFloat((ev.materials||'').toString().replace(/[^0-9.]/g,''))||0;
+        const prof=parseFloat((ev.profit||'').toString().replace(/[^0-9.]/g,''))||0;
+        const total=p+mat+prof;
+        if(total>0){const pts=k.split('-');const idx=evs.indexOf(ev);unpaidEvs.push({...ev,key:k,idx:idx,dateLabel:pts[2]+'/'+pts[1],_total:total});}
       }
     });
   });
@@ -1126,7 +1130,7 @@ function renderDash(){
       ...unpaidEvs.map(ev=>`<div style="display:flex;justify-content:space-between;align-items:center;padding:10px 14px;border-bottom:1px solid var(--gray3);background:#fff8f8;">
         <div style="flex:1;"><div style="font-size:13px;font-weight:700;">${ev.client}</div><div style="font-size:11px;color:var(--gray4);">${ev.dateLabel} · ${ev.desc||''}</div></div>
         <div style="display:flex;align-items:center;gap:6px;flex-shrink:0;">
-          <span style="font-size:13px;font-weight:800;color:var(--red);">${ev.price} ₪</span>
+          <span style="font-size:13px;font-weight:800;color:var(--red);">${ev._total.toLocaleString()} ₪</span>
           <button onclick="markPaidFromDash('${ev.key}',${ev.idx})" style="padding:5px 9px;background:var(--green3);color:var(--green);border:1px solid var(--green4);border-radius:7px;font-size:11px;font-weight:700;cursor:pointer;font-family:'Heebo',sans-serif;">💰 שולם</button>
           <button class="wa-btn" onclick="openWADirect('${ev.phone||''}','${ev.client}','debt')">📱</button>
         </div>
@@ -1319,8 +1323,9 @@ function renderCal(){
       if(ev.cancelled){canc++;return;}
       visits++;
       const p=parseFloat((ev.price||'').toString().replace(/[^0-9.]/g,''))||0;
+      const mat=parseFloat((ev.materials||'').toString().replace(/[^0-9.]/g,''))||0;
       const prof=parseFloat((ev.profit||'').toString().replace(/[^0-9.]/g,''))||0;
-      const total=p+prof;
+      const total=p+mat+prof;
       if(total>0){exp+=total;if(ev.paid)inc+=total;else if(ev.done)unpaidCal+=total;}
     });
   });
