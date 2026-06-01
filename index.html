@@ -1114,7 +1114,7 @@ function renderDash(){
     evs.forEach(ev=>{
       if(!ev.isNote&&ev.done&&!ev.paid&&!ev.cancelled){
         const p=parseFloat((ev.price||'').toString().replace(/[^0-9.]/g,''))||0;
-        if(p>0){const pts=k.split('-');unpaidEvs.push({...ev,key:k,dateLabel:pts[2]+'/'+pts[1]});}
+        if(p>0){const pts=k.split('-');const idx=evs.indexOf(ev);unpaidEvs.push({...ev,key:k,idx:idx,dateLabel:pts[2]+'/'+pts[1]});}
       }
     });
   });
@@ -1127,7 +1127,7 @@ function renderDash(){
         <div style="flex:1;"><div style="font-size:13px;font-weight:700;">${ev.client}</div><div style="font-size:11px;color:var(--gray4);">${ev.dateLabel} · ${ev.desc||''}</div></div>
         <div style="display:flex;align-items:center;gap:6px;flex-shrink:0;">
           <span style="font-size:13px;font-weight:800;color:var(--red);">${ev.price} ₪</span>
-          <button onclick="markPaidFromDash('${ev.key}','${ev.client}')" style="padding:5px 9px;background:var(--green3);color:var(--green);border:1px solid var(--green4);border-radius:7px;font-size:11px;font-weight:700;cursor:pointer;font-family:'Heebo',sans-serif;">💰 שולם</button>
+          <button onclick="markPaidFromDash('${ev.key}',${ev.idx})" style="padding:5px 9px;background:var(--green3);color:var(--green);border:1px solid var(--green4);border-radius:7px;font-size:11px;font-weight:700;cursor:pointer;font-family:'Heebo',sans-serif;">💰 שולם</button>
           <button class="wa-btn" onclick="openWADirect('${ev.phone||''}','${ev.client}','debt')">📱</button>
         </div>
       </div>`),
@@ -1447,6 +1447,13 @@ function togVisit(key,i,field,btn){
     const parts=key.split('-');
     showDay(key,parseInt(parts[2]),parseInt(parts[1])-1,parseInt(parts[0]),sel);
   }
+}
+function markPaidFromDash(key,idx){
+  if(!D.cal[key]||D.cal[key][idx]===undefined)return;
+  const ev=D.cal[key][idx];
+  ev.paid=true;
+  saveData();renderCal();updateStats();renderDash();
+  toast('💰 סומן כשולם!');
 }
 function searchClientInCal(q){
   // Remove previous highlights
