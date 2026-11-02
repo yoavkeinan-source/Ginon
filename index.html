@@ -8,10 +8,10 @@
 <meta name="apple-mobile-web-app-title" content="גינון פרו">
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <meta http-equiv="Pragma" content="no-cache">
-<meta name="theme-color" content="#166534">
+<meta name="theme-color" content="#2f5d3a">
 <link rel="manifest" href="manifest.json">
 <title>גינון פרו</title>
-<link href="https://fonts.googleapis.com/css2?family=Heebo:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Frank+Ruhl+Libre:wght@500;700&family=Heebo:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
@@ -30,15 +30,35 @@ const DB = firebase.firestore();
 <style>
 *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent;}
 :root{
-  --green:#166534;--green2:#15803d;--green3:#dcfce7;--green4:#bbf7d0;
-  --amber:#92400e;--amber2:#fef3c7;--amber3:#fde68a;
-  --blue:#1e40af;--blue2:#dbeafe;--blue3:#93c5fd;
-  --red:#991b1b;--red2:#fee2e2;
-  --gray:#374151;--gray2:#f9fafb;--gray3:#e5e7eb;--gray4:#6b7280;
-  --bg:#f0fdf4;--white:#fff;
-  --safe-bottom:env(safe-area-inset-bottom,0px);
-  --safe-top:env(safe-area-inset-top,0px);
+  --green:#2f5d3a;--green2:#3c7449;--green3:#dfe9db;--green4:#c3d6c0;
+  --amber:#8a5a3b;--amber2:#f3e6da;--amber3:#e2c9b2;
+  --blue:#2c5a7a;--blue2:#dde9f1;--blue3:#a9c4d8;
+  --red:#a33a2c;--red2:#f6dcd6;
+  --gray:#1f2a21;--gray2:#f1ede2;--gray3:#d8d1c0;--gray4:#6b6f63;
+  --bg:#efeadf;--card:#fbf9f4;--white:#fbf9f4;--onacc:#fbf9f4;
+  --holi:#f6e7d3;--holib:#e6c9a3;--holit:#a8561f;--shab:#e9e3d3;--shabb:#d3cab2;--sel:#dfe9db;--selb:#2f5d3a;
+  --note:#f2e4ec;--notet:#8a3b64;--wabub:#dff0d3;--wabubb:#bcd9a8;
+  --safe-bottom:env(safe-area-inset-bottom,0px);--safe-top:env(safe-area-inset-top,0px);
+  --head:'Frank Ruhl Libre',Georgia,serif;
 }
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
+  --green:#7fbf8c;--green2:#6fb07d;--green3:#24382a;--green4:#35523c;
+  --amber:#d1a07c;--amber2:#34281f;--amber3:#5a432f;
+  --blue:#8fbbdc;--blue2:#1f3242;--blue3:#35526a;
+  --red:#ee8f80;--red2:#3d2420;
+  --gray:#e7ece3;--gray2:#222e25;--gray3:#2c3a2f;--gray4:#9aa595;
+  --bg:#0f1511;--card:#18211b;--white:#18211b;--onacc:#0f1511;
+  --holi:#3a2a1f;--holib:#5a432f;--holit:#f0a070;--shab:#1d2820;--shabb:#2c3a2f;--sel:#24382a;--selb:#7fbf8c;
+  --note:#35232d;--notet:#e3a6c6;--wabub:#243a22;--wabubb:#35552f;color-scheme:dark}}
+:root[data-theme="dark"]{
+  --green:#7fbf8c;--green2:#6fb07d;--green3:#24382a;--green4:#35523c;
+  --amber:#d1a07c;--amber2:#34281f;--amber3:#5a432f;
+  --blue:#8fbbdc;--blue2:#1f3242;--blue3:#35526a;
+  --red:#ee8f80;--red2:#3d2420;
+  --gray:#e7ece3;--gray2:#222e25;--gray3:#2c3a2f;--gray4:#9aa595;
+  --bg:#0f1511;--card:#18211b;--white:#18211b;--onacc:#0f1511;
+  --holi:#3a2a1f;--holib:#5a432f;--holit:#f0a070;--shab:#1d2820;--shabb:#2c3a2f;--sel:#24382a;--selb:#7fbf8c;
+  --note:#35232d;--notet:#e3a6c6;--wabub:#243a22;--wabubb:#35552f;color-scheme:dark}
 html,body{height:100%;font-family:'Heebo',sans-serif;background:var(--bg);color:var(--gray);overflow:hidden;}
 
 /* LOGIN */
@@ -47,7 +67,7 @@ html,body{height:100%;font-family:'Heebo',sans-serif;background:var(--bg);color:
 .l-icon{font-size:56px;margin-bottom:6px;}
 .l-title{font-size:28px;font-weight:900;color:#fff;letter-spacing:-1px;}
 .l-sub{font-size:13px;color:rgba(255,255,255,.6);margin-bottom:28px;}
-.l-card{background:#fff;border-radius:20px;padding:24px 20px;width:100%;max-width:360px;box-shadow:0 24px 48px rgba(0,0,0,.35);}
+.l-card{background:var(--card);border-radius:20px;padding:24px 20px;width:100%;max-width:360px;box-shadow:0 24px 48px rgba(0,0,0,.35);}
 .l-card h2{font-size:16px;font-weight:800;color:var(--green);text-align:center;margin-bottom:16px;}
 .lf{margin-bottom:12px;}
 .lf label{display:block;font-size:11px;font-weight:700;color:var(--gray4);margin-bottom:4px;text-transform:uppercase;letter-spacing:.05em;}
@@ -57,7 +77,7 @@ html,body{height:100%;font-family:'Heebo',sans-serif;background:var(--bg);color:
 .l-err.show{display:block;}
 .l-ok{background:var(--green3);color:var(--green);border-radius:8px;padding:9px 12px;font-size:12.5px;font-weight:600;margin-bottom:11px;display:none;text-align:center;}
 .l-ok.show{display:block;}
-.l-btn{width:100%;background:var(--green);color:#fff;border:none;border-radius:10px;padding:13px;font-size:15px;font-weight:800;font-family:'Heebo',sans-serif;cursor:pointer;margin-bottom:12px;}
+.l-btn{width:100%;background:var(--green);color:var(--onacc);border:none;border-radius:10px;padding:13px;font-size:15px;font-weight:800;font-family:'Heebo',sans-serif;cursor:pointer;margin-bottom:12px;}
 .l-links{display:flex;justify-content:space-between;font-size:12px;}
 .l-links a{color:var(--green);font-weight:700;cursor:pointer;}
 
@@ -66,7 +86,7 @@ html,body{height:100%;font-family:'Heebo',sans-serif;background:var(--bg);color:
 #app.show{display:flex;}
 
 /* TOPBAR */
-.topbar{background:#fff;border-bottom:1px solid var(--gray3);padding:calc(var(--safe-top) + 10px) 16px 10px;display:flex;align-items:center;gap:10px;flex-shrink:0;}
+.topbar{background:var(--card);border-bottom:1px solid var(--gray3);padding:calc(var(--safe-top) + 10px) 16px 10px;display:flex;align-items:center;gap:10px;flex-shrink:0;}
 .topbar h2{flex:1;font-size:16px;font-weight:800;color:var(--green);}
 .exit-btn{font-size:12px;color:var(--gray4);cursor:pointer;background:none;border:none;font-family:'Heebo',sans-serif;font-weight:600;}
 
@@ -77,14 +97,14 @@ html,body{height:100%;font-family:'Heebo',sans-serif;background:var(--bg);color:
 .sec{display:none;}.sec.on{display:block;}
 
 /* BOTTOM NAV */
-.bnav{position:fixed;bottom:0;left:0;right:0;background:#fff;border-top:1px solid var(--gray3);display:flex;padding-bottom:var(--safe-bottom);z-index:100;}
+.bnav{position:fixed;bottom:0;left:0;right:0;background:var(--card);border-top:1px solid var(--gray3);display:flex;padding-bottom:var(--safe-bottom);z-index:100;}
 .bn{flex:1;display:flex;flex-direction:column;align-items:center;gap:2px;padding:9px 4px 7px;cursor:pointer;color:var(--gray4);font-size:10px;font-weight:700;border:none;background:none;font-family:'Heebo',sans-serif;transition:color .15s;}
 .bn .bic{font-size:21px;line-height:1;}
 .bn.on{color:var(--green);}
 
 /* STATS */
 .stats{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:14px;}
-.stat{background:#fff;border:1px solid var(--gray3);border-radius:12px;padding:13px 14px;}
+.stat{background:var(--card);border:1px solid var(--gray3);border-radius:12px;padding:13px 14px;}
 .stat-l{font-size:11px;color:var(--gray4);margin-bottom:4px;font-weight:600;}
 .stat-v{font-size:21px;font-weight:900;color:var(--gray);}
 .stat.g .stat-v{color:var(--green);}
@@ -92,16 +112,16 @@ html,body{height:100%;font-family:'Heebo',sans-serif;background:var(--bg);color:
 .stat.a .stat-v{color:var(--amber);}
 
 /* CARDS */
-.card{background:#fff;border-radius:14px;border:1px solid var(--gray3);margin-bottom:13px;overflow:hidden;}
+.card{background:var(--card);border-radius:14px;border:1px solid var(--gray3);margin-bottom:13px;overflow:hidden;}
 .ch{padding:12px 15px;border-bottom:1px solid var(--gray3);display:flex;justify-content:space-between;align-items:center;}
 .ch h3{font-size:14px;font-weight:700;color:var(--gray);}
 
 /* BTN */
 .btn{border:none;border-radius:9px;padding:7px 14px;font-size:13px;font-family:'Heebo',sans-serif;cursor:pointer;font-weight:700;display:inline-flex;align-items:center;gap:5px;}
-.btn-g{background:var(--green);color:#fff;}
+.btn-g{background:var(--green);color:var(--onacc);}
 .btn-gray{background:var(--gray2);color:var(--gray);border:1px solid var(--gray3);}
-.btn-r{background:var(--red);color:#fff;}
-.btn-amber{background:#d97706;color:#fff;}
+.btn-r{background:var(--red);color:var(--onacc);}
+.btn-amber{background:#d97706;color:var(--onacc);}
 .btn-sm{padding:5px 11px;font-size:12px;}
 
 /* TABLE */
@@ -121,7 +141,7 @@ tr:last-child td{border-bottom:none;}
 .fi{display:flex;flex-direction:column;gap:4px;}
 .fi.full{grid-column:1/-1;}
 .fi label{font-size:11px;font-weight:700;color:var(--gray4);text-transform:uppercase;letter-spacing:.04em;}
-.fi input,.fi select,.fi textarea{padding:10px 12px;border:1.5px solid var(--gray3);border-radius:9px;font-size:13px;font-family:'Heebo',sans-serif;width:100%;background:#fff;color:var(--gray);}
+.fi input,.fi select,.fi textarea{padding:10px 12px;border:1.5px solid var(--gray3);border-radius:9px;font-size:13px;font-family:'Heebo',sans-serif;width:100%;background:var(--card);color:var(--gray);}
 .fi input:focus,.fi select:focus,.fi textarea:focus{outline:none;border-color:var(--green2);}
 .fi textarea{resize:vertical;min-height:65px;}
 
@@ -132,15 +152,15 @@ tr:last-child td{border-bottom:none;}
 /* MODAL */
 .ov{position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:200;display:none;align-items:flex-end;justify-content:center;}
 .ov.on{display:flex;}
-.modal{background:#fff;border-radius:20px 20px 0 0;width:100%;max-width:520px;max-height:88vh;overflow-y:auto;padding-bottom:var(--safe-bottom);}
-.mh{padding:15px 16px;border-bottom:1px solid var(--gray3);display:flex;justify-content:space-between;align-items:center;position:sticky;top:0;background:#fff;}
+.modal{background:var(--card);border-radius:20px 20px 0 0;width:100%;max-width:520px;max-height:88vh;overflow-y:auto;padding-bottom:var(--safe-bottom);}
+.mh{padding:15px 16px;border-bottom:1px solid var(--gray3);display:flex;justify-content:space-between;align-items:center;position:sticky;top:0;background:var(--card);}
 .mh h3{font-size:15px;font-weight:800;color:var(--green);}
 .mc{background:none;border:none;font-size:24px;cursor:pointer;color:var(--gray4);line-height:1;}
 .mb{padding:16px;}
 .mf{padding:12px 16px;border-top:1px solid var(--gray3);display:flex;justify-content:flex-end;gap:8px;background:var(--gray2);}
 
 /* TOAST */
-.toast{position:fixed;bottom:calc(var(--safe-bottom) + 78px);left:50%;transform:translateX(-50%) translateY(10px);background:#1a1a1a;color:#fff;padding:10px 20px;border-radius:9px;font-size:13px;font-weight:700;z-index:300;opacity:0;transition:all .3s;pointer-events:none;max-width:90vw;text-align:center;}
+.toast{position:fixed;bottom:calc(var(--safe-bottom) + 78px);left:50%;transform:translateX(-50%) translateY(10px);background:#1a1a1a;color:var(--onacc);padding:10px 20px;border-radius:9px;font-size:13px;font-weight:700;z-index:300;opacity:0;transition:all .3s;pointer-events:none;max-width:90vw;text-align:center;}
 .toast.on{opacity:1;transform:translateX(-50%) translateY(0);}
 
 /* SYNC BAR */
@@ -152,10 +172,10 @@ tr:last-child td{border-bottom:none;}
 .cnav h3{flex:1;text-align:center;font-size:15px;font-weight:800;}
 .cgrid{display:grid;grid-template-columns:repeat(7,1fr);gap:2px;}
 .cdn{text-align:center;font-size:10px;font-weight:700;color:var(--gray4);padding:5px 0;}
-.cd{min-height:54px;border:1px solid var(--gray3);border-radius:7px;padding:3px 4px;background:#fff;cursor:pointer;transition:border-color .15s;overflow:hidden;}
+.cd{min-height:54px;border:1px solid var(--gray3);border-radius:7px;padding:3px 4px;background:var(--card);cursor:pointer;transition:border-color .15s;overflow:hidden;}
 .cd:hover{border-color:var(--green2);}
 .cd.today{border:2px solid var(--green2);background:var(--green3);}
-.cd.holiday{background:#fff7ed;border-color:#fed7aa;}
+.cd.holiday{background:var(--card)7ed;border-color:#fed7aa;}
 .cd.shabbat{background:#faf5ff;border-color:#e9d5ff;}
 .cd.selected{border:2px solid #6366f1;background:#eef2ff;}
 .cd.om{opacity:.3;}
@@ -164,11 +184,11 @@ tr:last-child td{border-bottom:none;}
 .ce{font-size:9px;padding:1px 3px;border-radius:3px;margin-bottom:1px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;font-weight:700;}
 .ce-done{background:#dbeafe;color:#1e40af;}
 .ce-paid{background:#dcfce7;color:#166534;}
-.ce-todo{background:#fef3c7;color:#92400e;}
+.ce-todo{background:var(--amber2);color:#92400e;}
 .ce-note{background:#fce7f3;color:#9d174d;}
 
 /* DAY PANEL */
-.dp{background:#fff;border:1px solid var(--gray3);border-radius:14px;margin-top:11px;overflow:hidden;}
+.dp{background:var(--card);border:1px solid var(--gray3);border-radius:14px;margin-top:11px;overflow:hidden;}
 .dp-hdr{padding:10px 14px;background:var(--green3);display:flex;justify-content:space-between;align-items:center;}
 .dp-hdr h4{font-size:13px;font-weight:800;color:var(--green);}
 .vr{padding:11px 14px;border-bottom:1px solid var(--gray3);}
@@ -179,10 +199,10 @@ tr:last-child td{border-bottom:none;}
 .vr-info .vr-time{font-size:11px;font-weight:700;color:var(--green2);margin-top:2px;}
 .vr-price{font-size:14px;font-weight:900;color:var(--green);}
 .vr-acts{display:flex;gap:5px;margin-top:8px;flex-wrap:wrap;}
-.sbtn{padding:4px 10px;border-radius:7px;font-size:11px;font-weight:700;border:1.5px solid var(--gray3);cursor:pointer;background:#fff;font-family:'Heebo',sans-serif;}
+.sbtn{padding:4px 10px;border-radius:7px;font-size:11px;font-weight:700;border:1.5px solid var(--gray3);cursor:pointer;background:var(--card);font-family:'Heebo',sans-serif;}
 .sbtn.done.on{background:var(--blue2);border-color:var(--blue3);color:var(--blue);}
 .sbtn.paid.on{background:var(--green3);border-color:var(--green4);color:var(--green);}
-.wa-btn{padding:4px 10px;border-radius:7px;background:#25D366;color:#fff;font-size:11px;font-weight:700;border:none;cursor:pointer;}
+.wa-btn{padding:4px 10px;border-radius:7px;background:#25D366;color:var(--onacc);font-size:11px;font-weight:700;border:none;cursor:pointer;}
 .note-row{padding:9px 14px;border-bottom:1px solid var(--gray3);background:#fdf4ff;display:flex;align-items:center;gap:8px;}
 .note-txt{flex:1;font-size:12.5px;color:#7e22ce;font-weight:600;}
 
@@ -192,17 +212,17 @@ tr:last-child td{border-bottom:none;}
 .jcl{font-size:13.5px;font-weight:800;}
 .jdesc{font-size:11.5px;color:var(--gray4);margin-top:1px;}
 .steps{display:flex;gap:4px;flex-wrap:wrap;margin-top:7px;}
-.step{font-size:11px;padding:4px 9px;border-radius:7px;border:1.5px solid var(--gray3);cursor:pointer;font-weight:700;user-select:none;font-family:'Heebo',sans-serif;background:#fff;}
+.step{font-size:11px;padding:4px 9px;border-radius:7px;border:1.5px solid var(--gray3);cursor:pointer;font-weight:700;user-select:none;font-family:'Heebo',sans-serif;background:var(--card);}
 .step.s1{background:var(--blue2);border-color:var(--blue3);color:var(--blue);}
 .step.s2{background:var(--amber2);border-color:var(--amber3);color:var(--amber);}
 .step.s3{background:var(--green3);border-color:var(--green4);color:var(--green);}
 
 /* PLANTS */
 .cats{display:flex;gap:5px;flex-wrap:wrap;margin-bottom:13px;}
-.cat{padding:5px 13px;border-radius:20px;font-size:12px;font-weight:700;border:1.5px solid var(--gray3);cursor:pointer;background:#fff;color:var(--gray4);white-space:nowrap;}
-.cat.on{background:var(--green);color:#fff;border-color:var(--green);}
+.cat{padding:5px 13px;border-radius:20px;font-size:12px;font-weight:700;border:1.5px solid var(--gray3);cursor:pointer;background:var(--card);color:var(--gray4);white-space:nowrap;}
+.cat.on{background:var(--green);color:var(--onacc);border-color:var(--green);}
 .pgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(155px,1fr));gap:11px;}
-.pc{background:#fff;border:1px solid var(--gray3);border-radius:12px;overflow:hidden;cursor:pointer;position:relative;transition:box-shadow .2s;}
+.pc{background:var(--card);border:1px solid var(--gray3);border-radius:12px;overflow:hidden;cursor:pointer;position:relative;transition:box-shadow .2s;}
 .pc:active{box-shadow:0 0 0 3px var(--green3);}
 .pimgpl{height:100px;display:flex;align-items:center;justify-content:center;font-size:44px;background:var(--green3);}
 .pimg{width:100%;height:100px;object-fit:cover;}
@@ -211,13 +231,13 @@ tr:last-child td{border-bottom:none;}
 .pl{font-size:10px;color:var(--gray4);font-style:italic;}
 .ptags{display:flex;flex-wrap:wrap;gap:3px;margin-top:5px;}
 .ptag{padding:2px 6px;border-radius:8px;font-size:10px;font-weight:700;background:var(--green3);color:var(--green);}
-.del-x{position:absolute;top:5px;left:5px;background:rgba(153,27,27,.85);color:#fff;border:none;border-radius:5px;width:24px;height:24px;font-size:13px;cursor:pointer;display:flex;align-items:center;justify-content:center;}
+.del-x{position:absolute;top:5px;left:5px;background:rgba(153,27,27,.85);color:var(--onacc);border:none;border-radius:5px;width:24px;height:24px;font-size:13px;cursor:pointer;display:flex;align-items:center;justify-content:center;}
 
 /* AI BOX */
 .aibox{background:linear-gradient(135deg,var(--green3),#bbf7d0);border:1px solid var(--green4);border-radius:12px;padding:13px;margin-bottom:13px;}
 .airow{display:flex;gap:7px;margin-top:8px;}
 .airow input{flex:1;padding:9px 12px;border:1.5px solid var(--green4);border-radius:9px;font-size:13px;font-family:'Heebo',sans-serif;}
-.aires{background:#fff;border:1px solid var(--green4);border-radius:9px;padding:12px;margin-top:9px;font-size:13px;line-height:1.7;display:none;}
+.aires{background:var(--card);border:1px solid var(--green4);border-radius:9px;padding:12px;margin-top:9px;font-size:13px;line-height:1.7;display:none;}
 .aires.on{display:block;}
 @keyframes bl{0%,100%{opacity:1;}50%{opacity:.2;}}
 .dot{display:inline-block;width:6px;height:6px;border-radius:50%;background:var(--green);animation:bl 1s infinite;margin:0 1px;}
@@ -250,7 +270,7 @@ tr:last-child td{border-bottom:none;}
 .tog{position:relative;width:42px;height:24px;flex-shrink:0;}
 .tog input{display:none;}
 .tsl{position:absolute;inset:0;background:#d1d5db;border-radius:12px;cursor:pointer;transition:.2s;}
-.tsl:before{content:'';position:absolute;width:18px;height:18px;border-radius:50%;background:#fff;top:3px;right:3px;transition:.2s;box-shadow:0 1px 3px rgba(0,0,0,.2);}
+.tsl:before{content:'';position:absolute;width:18px;height:18px;border-radius:50%;background:var(--card);top:3px;right:3px;transition:.2s;box-shadow:0 1px 3px rgba(0,0,0,.2);}
 .tog input:checked+.tsl{background:var(--green);}
 .tog input:checked+.tsl:before{right:auto;left:3px;}
 
@@ -261,20 +281,52 @@ tr:last-child td{border-bottom:none;}
 .img-prev{width:100%;max-height:130px;object-fit:cover;border-radius:8px;display:none;margin-bottom:8px;}
 
 /* REMINDERS */
-.ri{background:#fff;border:1px solid var(--gray3);border-radius:11px;padding:12px 13px;margin-bottom:9px;display:flex;align-items:center;gap:10px;}
+.ri{background:var(--card);border:1px solid var(--gray3);border-radius:11px;padding:12px 13px;margin-bottom:9px;display:flex;align-items:center;gap:10px;}
 .rck{width:22px;height:22px;border:2px solid var(--gray3);border-radius:50%;cursor:pointer;flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:12px;}
-.rck.dn{background:var(--green);border-color:var(--green);color:#fff;}
+.rck.dn{background:var(--green);border-color:var(--green);color:var(--onacc);}
 .rtx{flex:1;}
 .rn{font-size:13px;font-weight:700;}
 .rd{font-size:11px;color:var(--gray4);}
 
 /* MORE MENU */
-.menu-item{display:flex;align-items:center;gap:12px;padding:14px 16px;background:#fff;border-radius:12px;margin-bottom:9px;cursor:pointer;border:1px solid var(--gray3);}
+.menu-item{display:flex;align-items:center;gap:12px;padding:14px 16px;background:var(--card);border-radius:12px;margin-bottom:9px;cursor:pointer;border:1px solid var(--gray3);}
 .menu-item .mi{font-size:24px;flex-shrink:0;}
 .menu-item .mt{flex:1;}
 .menu-item .mt div:first-child{font-size:14px;font-weight:700;}
 .menu-item .mt div:last-child{font-size:12px;color:var(--gray4);margin-top:2px;}
 .menu-item .arr{color:var(--gray4);font-size:18px;}
+
+/* NEW LOOK */
+body{transition:background .3s,color .3s;}
+.topbar h2{font-family:var(--head);font-size:21px;font-weight:700;}
+.card,.stat,.dp,.menu-item,.ri,.pc{border-radius:18px;}
+.stat-v{font-family:var(--head);font-size:24px;font-weight:700;}
+.btn{border-radius:12px;transition:transform .15s,opacity .2s;}.btn:active{transform:scale(.95);}
+.cd.holiday{background:var(--holi);border-color:var(--holib);}.hday{color:var(--holit);}
+.cd.shabbat{background:var(--shab);border-color:var(--shabb);}
+.cd.selected{border:2px solid var(--selb);background:var(--sel);}
+.ce-done{background:var(--blue2);color:var(--blue);}.ce-paid{background:var(--green3);color:var(--green);}
+.ce-todo{background:var(--amber2);color:var(--amber);}.ce-note{background:var(--note);color:var(--notet);}
+.note-row{background:var(--note);}.note-txt{color:var(--notet);}
+.tsl{background:var(--gray3);}.tsl:before{background:var(--card);}
+.sbtn,.step,.cat,.sbar input,.ps-wrap input,.fi input,.fi select,.fi textarea,.add-row input,.airow input{background:var(--card);color:var(--gray);}
+.sbtn.done.on{background:var(--blue2);}.aibox{background:var(--green3);}.aires{background:var(--card);}
+.ov{background:rgba(0,0,0,.55);}
+.modal{animation:sheetup .3s cubic-bezier(.2,.8,.2,1);}
+@keyframes sheetup{from{transform:translateY(40px);opacity:.5}to{transform:none;opacity:1}}
+.sec.on{animation:fadein .3s;}@keyframes fadein{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
+.bn.on{background:var(--green3);border-radius:12px;}
+.theme-btn{background:none;border:1px solid var(--gray3);border-radius:10px;width:36px;height:34px;cursor:pointer;font-size:16px;color:var(--gray);}
+/* dark-mode fixes for inline colors */
+[style*="background:#fff;"],[style*="background:#fff\""]{background:var(--card)!important;}
+[style*="background:#fff1f2"],[style*="background:#fdf4ff"]{background:var(--red2)!important;}
+[style*="background:#dcf8c6"]{background:var(--wabub)!important;border-color:var(--wabubb)!important;}
+[style*="color:var(--gray)"]{color:var(--gray);}
+.rep-tbl td,.rep-tbl th{white-space:nowrap;}
+.rep-big{font-family:var(--head);font-size:26px;font-weight:700;color:var(--green);}
+.rep-bar{height:8px;border-radius:4px;background:var(--green3);overflow:hidden;min-width:60px;}
+.rep-bar i{display:block;height:100%;background:var(--green);border-radius:4px;}
+@media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
 </style>
 </head>
 <body>
@@ -301,6 +353,7 @@ tr:last-child td{border-bottom:none;}
   <div class="sync" id="sync">☁️ מסנכרן...</div>
   <div class="topbar">
     <h2 id="ptitle">📊 לוח ראשי</h2>
+    <button class="theme-btn" id="theme-btn" onclick="toggleTheme()" aria-label="מצב בהיר וכהה">🌓</button>
     <button class="exit-btn" id="user-lbl" onclick="doLogout()">יציאה</button>
   </div>
   <div class="content">
@@ -314,7 +367,7 @@ tr:last-child td{border-bottom:none;}
         <div class="stat g"><div class="stat-l">💰 נכנס החודש</div><div class="stat-v" id="st-income">0 ₪</div></div>
         <div class="stat"><div class="stat-l">📈 צפוי החודש</div><div class="stat-v" id="st-expected">0 ₪</div></div>
         <div class="stat a"><div class="stat-l">⏳ לא שולם</div><div class="stat-v" id="st-unpaid">0 ₪</div></div>
-        <div class="stat" style="background:#fff1f2;"><div class="stat-l">❌ בוטלו</div><div class="stat-v" id="st-cancelled" style="color:#991b1b;">0</div></div>
+        <div class="stat" style="background:var(--red2);"><div class="stat-l">❌ בוטלו</div><div class="stat-v" id="st-cancelled" style="color:var(--red);">0</div></div>
         <div class="stat"><div class="stat-l">👤 לקוחות</div><div class="stat-v" id="st-clients">0</div></div>
       </div><!-- /stats-box -->
       <div class="card">
@@ -356,14 +409,14 @@ tr:last-child td{border-bottom:none;}
         <button class="btn btn-gray btn-sm" onclick="chMonth(1)">▶</button>
         <button class="btn btn-g btn-sm" onclick="openAddEvent()">+</button>
       </div>
-      <div style="background:#fff;border:1px solid var(--gray3);border-radius:11px;padding:11px 14px;margin-bottom:11px;">
+      <div style="background:var(--card);border:1px solid var(--gray3);border-radius:11px;padding:11px 14px;margin-bottom:11px;">
         <div style="font-size:12px;font-weight:700;color:var(--gray4);margin-bottom:8px;">📊 סיכום חודשי</div>
         <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;">
           <div style="text-align:center;"><div style="font-size:18px;font-weight:900;color:var(--green);" id="cal-income">0 ₪</div><div style="font-size:10px;color:var(--gray4);">נכנס</div></div>
           <div style="text-align:center;"><div style="font-size:18px;font-weight:900;color:#1d4ed8;" id="cal-expected">0 ₪</div><div style="font-size:10px;color:var(--gray4);">צפוי</div></div>
           <div style="text-align:center;"><div style="font-size:18px;font-weight:900;color:var(--red);" id="cal-visits">0</div><div style="font-size:10px;color:var(--gray4);">ביקורים</div></div>
-          <div style="text-align:center;"><div style="font-size:18px;font-weight:900;color:#991b1b;" id="cal-cancelled">0</div><div style="font-size:10px;color:var(--gray4);">בוטלו</div></div>
-          <div style="text-align:center;"><div style="font-size:18px;font-weight:900;color:#92400e;" id="cal-unpaid">0 ₪</div><div style="font-size:10px;color:var(--gray4);">לא שולם</div></div>
+          <div style="text-align:center;"><div style="font-size:18px;font-weight:900;color:var(--red);" id="cal-cancelled">0</div><div style="font-size:10px;color:var(--gray4);">בוטלו</div></div>
+          <div style="text-align:center;"><div style="font-size:18px;font-weight:900;color:var(--amber);" id="cal-unpaid">0 ₪</div><div style="font-size:10px;color:var(--gray4);">לא שולם</div></div>
         </div>
       </div>
       <div style="display:flex;gap:7px;margin-bottom:10px;">
@@ -376,10 +429,10 @@ tr:last-child td{border-bottom:none;}
         <button class="btn btn-gray btn-sm" onclick="toggleCalStats()" id="cal-stats-btn" style="white-space:nowrap;flex-shrink:0;font-size:11px;">👁 הסתר</button>
       </div>
       <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:9px;font-size:11px;">
-        <span style="display:flex;align-items:center;gap:4px;"><span style="width:10px;height:10px;background:#fef3c7;border-radius:2px;display:inline-block;border:1px solid #fde68a;"></span>לא בוצע</span>
-        <span style="display:flex;align-items:center;gap:4px;"><span style="width:10px;height:10px;background:#dbeafe;border-radius:2px;display:inline-block;border:1px solid #93c5fd;"></span>בוצע</span>
-        <span style="display:flex;align-items:center;gap:4px;"><span style="width:10px;height:10px;background:#dcfce7;border-radius:2px;display:inline-block;border:1px solid #bbf7d0;"></span>שולם</span>
-        <span style="display:flex;align-items:center;gap:4px;"><span style="width:10px;height:10px;background:#fce7f3;border-radius:2px;display:inline-block;border:1px solid #f9a8d4;"></span>הערה</span>
+        <span style="display:flex;align-items:center;gap:4px;"><span style="width:10px;height:10px;background:var(--amber2);border-radius:2px;display:inline-block;border:1px solid #fde68a;"></span>לא בוצע</span>
+        <span style="display:flex;align-items:center;gap:4px;"><span style="width:10px;height:10px;background:var(--blue2);border-radius:2px;display:inline-block;border:1px solid #93c5fd;"></span>בוצע</span>
+        <span style="display:flex;align-items:center;gap:4px;"><span style="width:10px;height:10px;background:var(--green3);border-radius:2px;display:inline-block;border:1px solid var(--green4);"></span>שולם</span>
+        <span style="display:flex;align-items:center;gap:4px;"><span style="width:10px;height:10px;background:var(--note);border-radius:2px;display:inline-block;border:1px solid #f9a8d4;"></span>הערה</span>
       </div>
       <div class="cgrid" style="margin-bottom:3px;">
         <div class="cdn">א</div><div class="cdn">ב</div><div class="cdn">ג</div><div class="cdn">ד</div><div class="cdn">ה</div><div class="cdn">ו</div><div class="cdn">ש</div>
@@ -413,6 +466,7 @@ tr:last-child td{border-bottom:none;}
 
     <!-- MORE -->
     <div class="sec" id="s-more">
+      <div class="menu-item" onclick="nav('reports')"><div class="mi">📈</div><div class="mt"><div>דוחות והיסטוריה</div><div>כל ההכנסות והביקורים מאז ומעולם</div></div><div class="arr">›</div></div>
       <div class="menu-item" onclick="nav('jobs')"><div class="mi">✅</div><div class="mt"><div>מעקב עבודות</div><div>בוצע · חשבונית · שולם</div></div><div class="arr">›</div></div>
       <div class="menu-item" onclick="nav('trim')"><div class="mi">✂️</div><div class="mt"><div>סידור ימי גזם</div><div>תאריכים קבועים לגזם</div></div><div class="arr">›</div></div>
       <div class="menu-item" onclick="nav('rem')"><div class="mi">🔔</div><div class="mt"><div>תזכורות</div><div>תזכורות אישיות</div></div><div class="arr">›</div></div>
@@ -421,11 +475,34 @@ tr:last-child td{border-bottom:none;}
       <div class="menu-item" onclick="nav('settings')"><div class="mi">⚙️</div><div class="mt"><div>הגדרות</div><div>הגדרות וייצוא</div></div><div class="arr">›</div></div>
     </div>
 
+
+    <!-- REPORTS -->
+    <div class="sec" id="s-reports">
+      <div class="card"><div style="padding:14px 15px;display:grid;grid-template-columns:1fr 1fr;gap:12px;">
+        <div><div class="stat-l">סה"כ נגבה (כל הזמנים)</div><div class="rep-big" id="rp-total">0 ₪</div></div>
+        <div><div class="stat-l">ממתין לתשלום</div><div class="rep-big" style="color:var(--amber)" id="rp-unpaid">0 ₪</div></div>
+        <div><div class="stat-l">ביקורים שבוצעו</div><div class="rep-big" id="rp-visits">0</div></div>
+        <div><div class="stat-l">בוטלו</div><div class="rep-big" style="color:var(--red)" id="rp-canc">0</div></div>
+      </div></div>
+      <div class="card"><div class="ch"><h3>הכנסות לפי חודש</h3></div><div class="tw"><table class="rep-tbl"><thead><tr><th>חודש</th><th>נגבה</th><th>לא שולם</th><th>ביקורים</th><th></th></tr></thead><tbody id="rp-months"></tbody></table></div></div>
+      <div class="card"><div class="ch"><h3>לפי לקוח</h3></div><div class="tw"><table class="rep-tbl"><thead><tr><th>לקוח</th><th>נגבה</th><th>לא שולם</th><th>ביקורים</th></tr></thead><tbody id="rp-clients"></tbody></table></div></div>
+      <div class="card"><div class="ch"><h3>כל הביקורים</h3></div>
+        <div style="padding:10px 12px;display:flex;gap:8px;"><input type="text" id="rp-q" oninput="renderReports()" placeholder="חיפוש לקוח או תיאור" style="flex:1;padding:9px 12px;border:1.5px solid var(--gray3);border-radius:10px;font-family:'Heebo',sans-serif;font-size:13px;background:var(--card);color:var(--gray);">
+        <select id="rp-f" onchange="renderReports()" style="padding:9px;border:1.5px solid var(--gray3);border-radius:10px;font-family:'Heebo',sans-serif;background:var(--card);color:var(--gray);"><option value="">הכל</option><option value="paid">שולם</option><option value="unpaid">בוצע, לא שולם</option><option value="todo">עתידי</option><option value="canc">בוטל</option></select></div>
+        <div class="tw"><table class="rep-tbl"><thead><tr><th>תאריך</th><th>לקוח</th><th>סכום</th><th>סטטוס</th></tr></thead><tbody id="rp-all"></tbody></table></div>
+        <div class="sub" id="rp-cnt" style="padding:8px 14px;font-size:12px;color:var(--gray4);"></div></div>
+      <div class="card"><div style="padding:14px 15px;display:flex;flex-direction:column;gap:9px;">
+        <button class="btn btn-g" style="justify-content:center;" onclick="exportJSON()">📥 הורד גיבוי מלא (JSON)</button>
+        <button class="btn btn-gray" style="justify-content:center;" onclick="exportHistoryCSV()">📥 הורד היסטוריית ביקורים (Excel/CSV)</button>
+        <button class="btn btn-gray" style="justify-content:center;" onclick="restoreSnapshot()">↩️ שחזור מגיבוי אוטומטי אחרון</button>
+      </div></div>
+    </div>
+
     <!-- JOBS -->
     <div class="sec" id="s-jobs">
       <div class="sbar"><input type="text" placeholder="🔍 חיפוש..."><button class="btn btn-g" onclick="openM('m-job')">+</button></div>
       <div style="background:var(--green3);border:1px solid var(--green4);border-radius:9px;padding:8px 12px;font-size:12px;color:var(--green);font-weight:700;margin-bottom:11px;">💡 לחץ לסימון שלבים: בוצע → חשבונית → שולם</div>
-      <div style="background:#fff;border:1px solid var(--gray3);border-radius:14px;overflow:hidden;" id="jobs-list">
+      <div style="background:var(--card);border:1px solid var(--gray3);border-radius:14px;overflow:hidden;" id="jobs-list">
         <div style="padding:16px;text-align:center;color:var(--gray4);font-size:13px;">לחץ + להוספת עבודה</div>
       </div>
     </div>
@@ -475,88 +552,28 @@ tr:last-child td{border-bottom:none;}
 
     <!-- WA -->
     <div class="sec" id="s-wa">
-
-      <!-- שליחה לקוח בודד -->
       <div class="card">
-        <div class="ch"><h3>📱 הודעה ללקוח בודד</h3></div>
-        <div style="padding:14px;display:flex;flex-direction:column;gap:10px;">
-          <div class="fi"><label>בחר לקוח</label><select id="wa-sel" onchange="updWAPreview()"><option value="">-- בחר לקוח --</option></select></div>
-          <div class="fi"><label>סוג הודעה</label>
+        <div class="ch"><h3>📱 שליחת ווטסאפ</h3></div>
+        <div style="padding:14px;">
+          <div class="fi" style="margin-bottom:10px;"><label>בחר לקוח</label><select id="wa-sel" onchange="updWAPreview()"><option value="">-- בחר --</option></select></div>
+          <div class="fi" style="margin-bottom:10px;"><label>סוג הודעה</label>
             <select id="wa-type" onchange="updWAPreview()">
               <option value="visit">תזכורת ביקור מחר</option>
               <option value="debt">תזכורת תשלום</option>
               <option value="done">אישור סיום עבודה</option>
-              <option value="vacation">הודעת היעדרות</option>
               <option value="custom">הודעה חופשית</option>
             </select>
           </div>
-          <div id="wa-preview" style="background:#dcf8c6;border:1px solid #a7f3d0;border-radius:10px;padding:11px 13px;font-size:13px;line-height:1.7;white-space:pre-wrap;display:none;"></div>
-          <div class="fi" id="wa-edit-wrap" style="display:none;"><label>✏️ ערוך לפני שליחה</label><textarea id="wa-edit-text" rows="5" style="font-size:13px;line-height:1.6;" oninput="syncWAEdit()"></textarea></div>
-          <div style="display:flex;gap:8px;">
-            <button class="btn btn-gray btn-sm" onclick="toggleWAEdit()" id="wa-edit-btn">✏️ ערוך</button>
-            <button class="btn btn-g" style="flex:1;justify-content:center;" onclick="sendWA()">📱 פתח ווטסאפ</button>
+          <div class="fi" id="wa-custom-wrap" style="margin-bottom:10px;display:none;"><label>הודעה</label><textarea id="wa-custom" rows="3" onchange="updWAPreview()"></textarea></div>
+          <div id="wa-preview" style="background:var(--wabub);border:1px solid var(--green4);border-radius:10px;padding:11px 13px;font-size:12.5px;line-height:1.6;margin-bottom:11px;display:none;"></div>
+          <button class="btn btn-g" style="width:100%;justify-content:center;margin-bottom:9px;" onclick="sendWA()">📱 פתח ווטסאפ</button>
+          <div style="border-top:1px solid var(--gray3);padding-top:11px;margin-top:4px;">
+            <div style="font-size:13px;font-weight:700;margin-bottom:9px;color:var(--gray);">שלח לכל הלקוחות:</div>
+            <button class="btn btn-gray" style="width:100%;justify-content:center;margin-bottom:8px;" onclick="sendWAAll('visit')">📱 תזכורת ביקור לכולם</button>
+            <button class="btn btn-gray" style="width:100%;justify-content:center;" onclick="sendWAAll('debt')">📱 תזכורת תשלום לכולם</button>
           </div>
         </div>
       </div>
-
-      <!-- שליחה לכולם -->
-      <div class="card">
-        <div class="ch"><h3>📢 שליחה לקבוצת לקוחות</h3></div>
-        <div style="padding:14px;display:flex;flex-direction:column;gap:10px;">
-
-          <!-- בחירת קבוצה -->
-          <div class="fi"><label>שלח ל...</label>
-            <select id="wa-group" onchange="updWAAllPreview();updWAAllCount()">
-              <option value="all">כל הלקוחות</option>
-              <option value="חודשי">לקוחות חודשיים בלבד</option>
-              <option value="רבעוני">לקוחות רבעוניים בלבד</option>
-              <option value="חד פעמי">לקוחות חד-פעמיים בלבד</option>
-            </select>
-          </div>
-
-          <!-- תבניות מהירות -->
-          <div class="fi"><label>תבנית מהירה</label>
-            <select id="wa-all-tpl" onchange="loadWAAllTpl()">
-              <option value="">-- בחר תבנית --</option>
-              <option value="visit">📅 תזכורת ביקור מחר</option>
-              <option value="debt">💰 תזכורת תשלום</option>
-              <option value="vacation">🌴 הודעת היעדרות / חופשה</option>
-              <option value="seasonal">🌸 ברכה עונתית</option>
-              <option value="promo">🎁 מבצע / הצעה</option>
-            </select>
-          </div>
-
-          <!-- עריכת הודעה -->
-          <div class="fi"><label>✏️ הודעה (ניתנת לעריכה מלאה)</label>
-            <textarea id="wa-all-text" rows="6" style="font-size:13px;line-height:1.7;" placeholder="כתוב את ההודעה כאן..." oninput="updWAAllCount();updWAAllPreview()"></textarea>
-          </div>
-
-          <!-- תצוגה מקדימה -->
-          <div id="wa-all-preview" style="background:#dcf8c6;border:1px solid #a7f3d0;border-radius:10px;padding:11px 13px;font-size:13px;line-height:1.7;white-space:pre-wrap;display:none;"></div>
-
-          <!-- מונה וכפתור -->
-          <div style="display:flex;align-items:center;justify-content:space-between;gap:8px;">
-            <span id="wa-all-count" style="font-size:12px;color:var(--gray4);font-weight:600;"></span>
-            <button class="btn btn-g" style="flex:1;justify-content:center;" onclick="sendWAAllCustom()">📢 שלח לכולם</button>
-          </div>
-          <div style="font-size:11px;color:var(--gray4);background:var(--gray2);border-radius:7px;padding:7px 10px;">
-            💡 הווטסאפ ייפתח בנפרד לכל לקוח — כל הודעה עם שם אישי. בין שליחה לשליחה יש השהייה קצרה.
-          </div>
-        </div>
-      </div>
-
-      <!-- עריכת תבניות -->
-      <div class="card">
-        <div class="ch"><h3>📝 עריכת תבניות הודעות</h3><button class="btn btn-g btn-sm" onclick="saveMsgTpls()">💾 שמור</button></div>
-        <div style="padding:14px;display:flex;flex-direction:column;gap:12px;">
-          <div class="fi"><label>📅 תזכורת ביקור מחר</label><textarea id="tpl-visit" rows="3" style="font-size:12px;line-height:1.6;"></textarea></div>
-          <div class="fi"><label>💰 תזכורת תשלום</label><textarea id="tpl-debt" rows="3" style="font-size:12px;line-height:1.6;"></textarea></div>
-          <div class="fi"><label>✅ אישור סיום עבודה</label><textarea id="tpl-done" rows="3" style="font-size:12px;line-height:1.6;"></textarea></div>
-          <div class="fi"><label>🌴 היעדרות / חופשה</label><textarea id="tpl-vacation" rows="3" style="font-size:12px;line-height:1.6;"></textarea></div>
-          <div style="font-size:11px;color:var(--gray4);background:var(--gray2);border-radius:7px;padding:7px 10px;">💡 השתמש ב-<b>{שם}</b> כדי להוסיף את שם הלקוח באופן אוטומטי</div>
-        </div>
-      </div>
-
     </div>
 
     <!-- SETTINGS -->
@@ -689,7 +706,7 @@ tr:last-child td{border-bottom:none;}
           oninput="filterClientSearch(this.value)"
           onfocus="showClientDropdown()"
           style="width:100%;">
-        <div id="ev-dropdown" style="display:none;position:absolute;top:100%;right:0;left:0;background:#fff;border:1.5px solid var(--green2);border-top:none;border-radius:0 0 9px 9px;max-height:180px;overflow-y:auto;z-index:50;box-shadow:0 4px 12px rgba(0,0,0,.1);">
+        <div id="ev-dropdown" style="display:none;position:absolute;top:100%;right:0;left:0;background:var(--card);border:1.5px solid var(--green2);border-top:none;border-radius:0 0 9px 9px;max-height:180px;overflow-y:auto;z-index:50;box-shadow:0 4px 12px rgba(0,0,0,.1);">
         </div>
       </div>
       <input type="hidden" id="ev-sel" value="">
@@ -1076,6 +1093,7 @@ async function saveCloud(){
   }catch(e){document.getElementById('sync').classList.remove('on');}
 }
 async function loadCloud(){
+  snapshotData();
   const local=localStorage.getItem('gp10');
   if(local)try{D=JSON.parse(local);}catch(e){}
   if(currentUser){
@@ -1085,6 +1103,7 @@ async function loadCloud(){
       document.getElementById('sync').classList.remove('on');
       if(doc.exists&&doc.data().data){
         const cloud=JSON.parse(doc.data().data);
+        try{localStorage.setItem('gp10_cloudcopy',doc.data().data);}catch(e){}
         D=cloud;
         localStorage.setItem('gp10',JSON.stringify(D));
       }
@@ -1097,8 +1116,89 @@ function initApp(){
   renderClients();renderJobs();renderPlants();renderCal();renderPrices();renderReminders();updateStats();renderDash();renderWeek();
 }
 
+
+// ═══════════════ THEME ═══════════════
+function applyTheme(t){if(t)document.documentElement.dataset.theme=t;}
+try{applyTheme(localStorage.getItem('gp_theme'));}catch(e){}
+function toggleTheme(){
+  const r=document.documentElement;
+  const dark=r.dataset.theme?r.dataset.theme==='dark':matchMedia('(prefers-color-scheme: dark)').matches;
+  const t=dark?'light':'dark';r.dataset.theme=t;
+  try{localStorage.setItem('gp_theme',t);}catch(e){}
+}
+// ═══════════════ AUTO SNAPSHOTS (data safety) ═══════════════
+function snapshotData(){
+  try{
+    const cur=localStorage.getItem('gp10');if(!cur)return;
+    if(!localStorage.getItem('gp10_premigration'))localStorage.setItem('gp10_premigration',cur);
+    const day=new Date().toISOString().slice(0,10);
+    const idx=JSON.parse(localStorage.getItem('gp10_snaps')||'[]');
+    if(idx.indexOf(day)<0){
+      localStorage.setItem('gp10_snap_'+day,cur);idx.push(day);
+      while(idx.length>7){const old=idx.shift();localStorage.removeItem('gp10_snap_'+old);}
+      localStorage.setItem('gp10_snaps',JSON.stringify(idx));
+    }
+  }catch(e){}
+}
+function restoreSnapshot(){
+  try{
+    const idx=JSON.parse(localStorage.getItem('gp10_snaps')||'[]');
+    const raw=(idx.length?localStorage.getItem('gp10_snap_'+idx[idx.length-1]):null)||localStorage.getItem('gp10_premigration');
+    if(!raw){toast('אין גיבוי אוטומטי במכשיר הזה');return;}
+    const d=JSON.parse(raw);
+    if(!confirm('לשחזר את הנתונים מהגיבוי האוטומטי האחרון? הנתונים הנוכחיים יוחלפו.'))return;
+    D=d;saveData();initApp();toast('✅ הנתונים שוחזרו');
+  }catch(e){toast('השחזור נכשל');}
+}
+// ═══════════════ REPORTS / HISTORY ═══════════════
+function _num(x){return parseFloat((x||'').toString().replace(/[^0-9.]/g,''))||0;}
+function allVisits(){
+  const out=[];
+  Object.entries(D.cal||{}).forEach(([k,evs])=>(evs||[]).forEach(ev=>{
+    if(ev.isNote)return;
+    const amt=_num(ev.price)+_num(ev.profit);
+    let st='todo';
+    if(ev.cancelled)st='canc';else if(ev.paid)st='paid';else if(ev.done)st='unpaid';
+    out.push({date:k,client:ev.client||'',desc:ev.desc||'',amt,st});
+  }));
+  return out.sort((a,b)=>b.date<a.date?-1:b.date>a.date?1:0);
+}
+const ST_LBL={paid:'שולם',unpaid:'בוצע, לא שולם',todo:'עתידי',canc:'בוטל'};
+function fmtD(k){const p=k.split('-');return p[2]+'/'+p[1]+'/'+p[0].slice(2);}
+function renderReports(){
+  const v=allVisits();
+  const sum=(a,f)=>a.filter(f).reduce((s,x)=>s+x.amt,0);
+  const fm=n=>Math.round(n).toLocaleString('he-IL')+' ₪';
+  document.getElementById('rp-total').textContent=fm(sum(v,x=>x.st==='paid'));
+  document.getElementById('rp-unpaid').textContent=fm(sum(v,x=>x.st==='unpaid'));
+  document.getElementById('rp-visits').textContent=v.filter(x=>x.st==='paid'||x.st==='unpaid').length;
+  document.getElementById('rp-canc').textContent=v.filter(x=>x.st==='canc').length;
+  const months={};
+  v.forEach(x=>{const m=x.date.slice(0,7);(months[m]=months[m]||{p:0,u:0,n:0});
+    if(x.st==='paid')months[m].p+=x.amt;if(x.st==='unpaid')months[m].u+=x.amt;if(x.st==='paid'||x.st==='unpaid')months[m].n++;});
+  const ms=Object.keys(months).sort().reverse();
+  const mx=Math.max(1,...ms.map(m=>months[m].p));
+  const MN=['ינו','פבר','מרץ','אפר','מאי','יונ','יול','אוג','ספט','אוק','נוב','דצמ'];
+  document.getElementById('rp-months').innerHTML=ms.map(m=>{const o=months[m],p=m.split('-');
+    return `<tr><td>${MN[+p[1]-1]} ${p[0]}</td><td><b>${fm(o.p)}</b></td><td>${o.u?fm(o.u):'-'}</td><td>${o.n}</td><td style="width:70px"><div class="rep-bar"><i style="width:${Math.round(o.p/mx*100)}%"></i></div></td></tr>`;}).join('')||'<tr><td colspan="5" style="text-align:center;color:var(--gray4)">אין נתונים</td></tr>';
+  const cl={};
+  v.forEach(x=>{if(!x.client)return;const o=(cl[x.client]=cl[x.client]||{p:0,u:0,n:0});
+    if(x.st==='paid')o.p+=x.amt;if(x.st==='unpaid')o.u+=x.amt;if(x.st==='paid'||x.st==='unpaid')o.n++;});
+  document.getElementById('rp-clients').innerHTML=Object.keys(cl).sort((a,b)=>cl[b].p-cl[a].p).map(n=>`<tr><td>${n}</td><td><b>${fm(cl[n].p)}</b></td><td>${cl[n].u?fm(cl[n].u):'-'}</td><td>${cl[n].n}</td></tr>`).join('')||'<tr><td colspan="4" style="text-align:center;color:var(--gray4)">אין נתונים</td></tr>';
+  const q=(document.getElementById('rp-q').value||'').trim(),f=document.getElementById('rp-f').value;
+  const list=v.filter(x=>(!f||x.st===f)&&(!q||(x.client+' '+x.desc).indexOf(q)>=0));
+  document.getElementById('rp-all').innerHTML=list.slice(0,300).map(x=>`<tr><td>${fmtD(x.date)}</td><td>${x.client}</td><td>${x.amt?fm(x.amt):'-'}</td><td>${ST_LBL[x.st]}</td></tr>`).join('')||'<tr><td colspan="4" style="text-align:center;color:var(--gray4)">אין תוצאות</td></tr>';
+  document.getElementById('rp-cnt').textContent=list.length>300?`מוצגים 300 מתוך ${list.length}. הורד CSV לרשימה המלאה`:`${list.length} ביקורים`;
+}
+function exportHistoryCSV(){
+  const rows=[['תאריך','לקוח','תיאור','סכום','סטטוס'],...allVisits().map(x=>[x.date,x.client,x.desc,x.amt,ST_LBL[x.st]])];
+  const esc=c=>'"'+String(c).replace(/"/g,'""')+'"';
+  const blob=new Blob(['﻿'+rows.map(r=>r.map(esc).join(',')).join('\n')],{type:'text/csv;charset=utf-8'});
+  const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download=`visits-${new Date().toISOString().slice(0,10)}.csv`;a.click();toast('📥 ההיסטוריה הורדה');
+}
+
 // ═══════════════ NAVIGATION ═══════════════
-const TITLES={dash:'📊 לוח ראשי',clients:'👤 לקוחות',cal:'📅 לוח חודשי',week:'🗓 לוח שבועי',plants:'🌱 מאגר צמחים',more:'☰ עוד',jobs:'✅ מעקב עבודות',rem:'🔔 תזכורות',prices:'💰 מחירונים',trim:'✂️ סידור ימי גזם',wa:'📱 ווטסאפ',settings:'⚙️ הגדרות'};
+const TITLES={dash:'📊 לוח ראשי',clients:'👤 לקוחות',cal:'📅 לוח חודשי',week:'🗓 לוח שבועי',plants:'🌱 מאגר צמחים',more:'☰ עוד',jobs:'✅ מעקב עבודות',rem:'🔔 תזכורות',prices:'💰 מחירונים',trim:'✂️ סידור ימי גזם',wa:'📱 ווטסאפ',settings:'⚙️ הגדרות',reports:'📈 דוחות והיסטוריה'};
 function nav(id,el){
   document.querySelectorAll('.sec').forEach(s=>s.classList.remove('on'));
   document.querySelectorAll('.bn').forEach(b=>b.classList.remove('on'));
@@ -1111,6 +1211,7 @@ function nav(id,el){
   if(id==='prices')renderPrices();
   if(id==='wa')refreshWASel();
   if(id==='dash'){renderDash();updateStats();}
+  if(id==='reports')renderReports();
 }
 
 // ═══════════════ STATS ═══════════════
@@ -1124,13 +1225,12 @@ function updateStats(){
       if(ev.isNote)return;
       if(ev.cancelled){cancelled++;return;}
       const p=parseFloat((ev.price||'').toString().replace(/[^0-9.]/g,''))||0;
-      const mat=parseFloat((ev.materials||'').toString().replace(/[^0-9.]/g,''))||0;
       const prof=parseFloat((ev.profit||'').toString().replace(/[^0-9.]/g,''))||0;
-      const total=p+mat+prof;
+      const total=p+prof;
       if(total>0){
         expected+=total;
         if(ev.paid){income+=total;}
-        else if(ev.done){unpaid+=total;} // רק בוצע אך לא שולם
+        else if(ev.done){unpaid+=p+prof;} // רק בוצע אך לא שולם
       }
     });
   });
@@ -1175,10 +1275,7 @@ function renderDash(){
     evs.forEach(ev=>{
       if(!ev.isNote&&ev.done&&!ev.paid&&!ev.cancelled){
         const p=parseFloat((ev.price||'').toString().replace(/[^0-9.]/g,''))||0;
-        const mat=parseFloat((ev.materials||'').toString().replace(/[^0-9.]/g,''))||0;
-        const prof=parseFloat((ev.profit||'').toString().replace(/[^0-9.]/g,''))||0;
-        const total=p+mat+prof;
-        if(total>0){const pts=k.split('-');const idx=evs.indexOf(ev);unpaidEvs.push({...ev,key:k,idx:idx,dateLabel:pts[2]+'/'+pts[1],_total:total});}
+        if(p>0){const pts=k.split('-');unpaidEvs.push({...ev,key:k,dateLabel:pts[2]+'/'+pts[1]});}
       }
     });
   });
@@ -1187,11 +1284,11 @@ function renderDash(){
     dup.innerHTML='<div style="padding:12px;text-align:center;color:var(--gray4);font-size:13px;">אין חובות פתוחים 👍</div>';
   } else {
     dup.innerHTML=[
-      ...unpaidEvs.map(ev=>`<div style="display:flex;justify-content:space-between;align-items:center;padding:10px 14px;border-bottom:1px solid var(--gray3);background:#fff8f8;">
+      ...unpaidEvs.map(ev=>`<div style="display:flex;justify-content:space-between;align-items:center;padding:10px 14px;border-bottom:1px solid var(--gray3);background:var(--red2);">
         <div style="flex:1;"><div style="font-size:13px;font-weight:700;">${ev.client}</div><div style="font-size:11px;color:var(--gray4);">${ev.dateLabel} · ${ev.desc||''}</div></div>
         <div style="display:flex;align-items:center;gap:6px;flex-shrink:0;">
-          <span style="font-size:13px;font-weight:800;color:var(--red);">${ev._total.toLocaleString()} ₪</span>
-          <button onclick="markPaidFromDash('${ev.key}',${ev.idx})" style="padding:5px 9px;background:var(--green3);color:var(--green);border:1px solid var(--green4);border-radius:7px;font-size:11px;font-weight:700;cursor:pointer;font-family:'Heebo',sans-serif;">💰 שולם</button>
+          <span style="font-size:13px;font-weight:800;color:var(--red);">${ev.price} ₪</span>
+          <button onclick="markPaidFromDash('${ev.key}','${ev.client}')" style="padding:5px 9px;background:var(--green3);color:var(--green);border:1px solid var(--green4);border-radius:7px;font-size:11px;font-weight:700;cursor:pointer;font-family:'Heebo',sans-serif;">💰 שולם</button>
           <button class="wa-btn" onclick="openWADirect('${ev.phone||''}','${ev.client}','debt')">📱</button>
         </div>
       </div>`),
@@ -1256,7 +1353,7 @@ function renderClientsStats(){
     return s+price*f;
   },0);
   box.innerHTML=`
-    <div style="background:#fff;border:1px solid var(--gray3);border-radius:12px;padding:12px 14px;width:100%;">
+    <div style="background:var(--card);border:1px solid var(--gray3);border-radius:12px;padding:12px 14px;width:100%;">
       <div style="font-size:12px;font-weight:700;color:var(--gray);margin-bottom:10px;">📊 סיכום לקוחות</div>
       <div style="display:flex;flex-wrap:wrap;gap:7px;margin-bottom:10px;">
         ${chip('סה"כ',total,'#dcfce7','var(--green)')}
@@ -1383,11 +1480,9 @@ function renderCal(){
       if(ev.cancelled){canc++;return;}
       visits++;
       const p=parseFloat((ev.price||'').toString().replace(/[^0-9.]/g,''))||0;
-      const mat=parseFloat((ev.materials||'').toString().replace(/[^0-9.]/g,''))||0;
       const prof=parseFloat((ev.profit||'').toString().replace(/[^0-9.]/g,''))||0;
       const total=p+prof;
-      const totalWithMat=p+mat+prof;
-      if(totalWithMat>0){exp+=total;if(ev.paid)inc+=total;else if(ev.done)unpaidCal+=totalWithMat;}
+      if(total>0){exp+=total;if(ev.paid)inc+=total;else if(ev.done)unpaidCal+=total;}
     });
   });
   const fmt=n=>n>0?n.toLocaleString()+' ₪':'0 ₪';
@@ -1420,7 +1515,7 @@ function renderCal(){
       if(ev.isNote)inner+=`<div class="ce ce-note">📝 ${ev.client.substring(0,8)}</div>`;
       else if(ev.paid)inner+=`<div class="ce ce-paid">✅ ${ev.client.split(' ').pop()}</div>`;
       else if(ev.done)inner+=`<div class="ce ce-done">🔵 ${ev.client.split(' ').pop()}</div>`;
-      else if(ev.cancelled)inner+=`<div class="ce" style="background:#fee2e2;color:#991b1b;">❌ ${ev.client.split(' ').pop()}</div>`;
+      else if(ev.cancelled)inner+=`<div class="ce" style="background:var(--red2);color:var(--red);">❌ ${ev.client.split(' ').pop()}</div>`;
       else inner+=`<div class="ce ce-todo">🟡 ${ev.client.split(' ').pop()}</div>`;
     });
     if(evs.length>3)inner+=`<div style="font-size:9px;color:var(--gray4);">+${evs.length-3}</div>`;
@@ -1464,10 +1559,10 @@ function showDay(key,d,m,y,el){
     html+=visits.map((ev,vi)=>{
       const i=evs.indexOf(ev);
       const p=parseFloat((ev.price||'').toString().replace(/[^0-9.]/g,''))||0;
-      const bg=ev.cancelled?'background:#f9fafb;opacity:.65;border-right:3px solid #d1d5db;':
-                ev.paid?'background:#f0fdf4;border-right:3px solid #86efac;':
-                ev.done?'background:#eff6ff;border-right:3px solid #93c5fd;':
-                'background:#fff;border-right:3px solid #fde68a;';
+      const bg=ev.cancelled?'background:var(--gray2);opacity:.65;border-right:3px solid #d1d5db;':
+                ev.paid?'background:var(--green3);border-right:3px solid #86efac;':
+                ev.done?'background:var(--blue2);border-right:3px solid #93c5fd;':
+                'background:var(--card);border-right:3px solid #fde68a;';
       const statusIcon=ev.cancelled?'❌ בוטל':ev.paid?'💰 שולם':ev.done?'🔵 בוצע':'🟡 לא בוצע';
       return`<div class="vr" style="${bg}">
         <div class="vr-top">
@@ -1513,13 +1608,6 @@ function togVisit(key,i,field,btn){
     const parts=key.split('-');
     showDay(key,parseInt(parts[2]),parseInt(parts[1])-1,parseInt(parts[0]),sel);
   }
-}
-function markPaidFromDash(key,idx){
-  if(!D.cal[key]||D.cal[key][idx]===undefined)return;
-  const ev=D.cal[key][idx];
-  ev.paid=true;
-  saveData();renderCal();updateStats();renderDash();
-  toast('💰 סומן כשולם!');
 }
 function searchClientInCal(q){
   // Remove previous highlights
@@ -1596,7 +1684,7 @@ function openMonthPlanner(){
 
   // ── MISSING ──
   if(missing.length){
-    html+=`<div style="padding:7px 14px;font-size:11px;font-weight:700;color:#991b1b;background:#fff1f2;border-bottom:1px solid #fecaca;">⚠️ חסרים ביקורים (${missing.length})</div>`;
+    html+=`<div style="padding:7px 14px;font-size:11px;font-weight:700;color:var(--red);background:var(--red2);border-bottom:1px solid #fecaca;">⚠️ חסרים ביקורים (${missing.length})</div>`;
     html+=missing.map(c=>{
       const freq=parseInt(c.freq)||1;
       const actual=counts[c.name]||0;
@@ -1627,12 +1715,12 @@ function openMonthPlanner(){
       const nextTxt=`${parseInt(nextParts[2])} ${MONTHS[parseInt(nextParts[1])-1]}`;
       const alreadyOnNext=D.cal[nextDate]&&D.cal[nextDate].some(e=>!e.isNote&&e.client===c.name);
 
-      return`<div style="border-bottom:1px solid var(--gray3);padding:11px 14px;background:#fff;">
+      return`<div style="border-bottom:1px solid var(--gray3);padding:11px 14px;background:var(--card);">
         <div style="display:flex;align-items:center;gap:8px;">
           <div style="flex:1;min-width:0;">
             <div style="font-size:13px;font-weight:800;">⚠️ ${c.name}</div>
             <div style="font-size:11px;color:var(--gray4);margin-top:2px;">${actual}/${freq} פעמים · ${c.fixed?c.fixed+' ₪':''}</div>
-            <div style="font-size:11px;color:#c2410c;font-weight:700;margin-top:2px;">חסר ${miss} ביקור${miss>1?'ים':''} · מוצע: ${nextTxt}${alreadyOnNext?' ✅':''}</div>
+            <div style="font-size:11px;color:var(--holit);font-weight:700;margin-top:2px;">חסר ${miss} ביקור${miss>1?'ים':''} · מוצע: ${nextTxt}${alreadyOnNext?' ✅':''}</div>
           </div>
           <div style="display:flex;gap:5px;flex-shrink:0;">
             ${nextDate&&!alreadyOnNext?`<button onclick="quickSchedule('${c.name.replace(/'/g,"\'")}','${nextDate}','${c.fixed||''}','${c.phone||''}')"
@@ -1678,11 +1766,11 @@ function openMonthPlanner(){
         </div>
         <div style="display:flex;gap:5px;">
           ${nextDate&&!alreadyOnNext?`<button onclick="quickSchedule('${c.name.replace(/'/g,"\'")}','${nextDate}','${c.fixed||''}','${c.phone||''}')"
-            style="padding:6px 10px;background:#fff;color:var(--green);border:1px solid var(--green4);border-radius:8px;font-size:11px;font-weight:700;cursor:pointer;font-family:'Heebo',sans-serif;">
+            style="padding:6px 10px;background:var(--card);color:var(--green);border:1px solid var(--green4);border-radius:8px;font-size:11px;font-weight:700;cursor:pointer;font-family:'Heebo',sans-serif;">
             📅 הבא
           </button>`:''}
           <button onclick="quickAddFromPlanner('${c.name.replace(/'/g,"\'")}','${c.fixed||''}');closeM('m-planner');"
-            style="padding:6px 10px;background:#fff;color:var(--green);border:1px solid var(--green4);border-radius:8px;font-size:11px;font-weight:700;cursor:pointer;font-family:'Heebo',sans-serif;">
+            style="padding:6px 10px;background:var(--card);color:var(--green);border:1px solid var(--green4);border-radius:8px;font-size:11px;font-weight:700;cursor:pointer;font-family:'Heebo',sans-serif;">
             + הוסף
           </button>
         </div>
@@ -2105,198 +2193,46 @@ function prTab(tab,el){
 }
 
 // ═══════════════ WHATSAPP ═══════════════
-
-// ברירות מחדל לתבניות
-const DEFAULT_TPLS={
-  visit:'שלום {שם}! 🌿\nרציתי להזכיר שמחר אני מגיע לגינה שלך לביצוע עבודת גינון.\nלשאלות אפשר לחזור אליי. תודה! 😊',
-  debt:'שלום {שם}! 🌿\nרציתי להזכיר שיש חשבון פתוח ממתין לתשלום.\nאפשר לסגור בנוחות — תודה!',
-  done:'שלום {שם}! 🌿\nהעבודה בגינה שלך הושלמה בהצלחה!\nמקווה שאתה מרוצה. לכל שאלה אני זמין.',
-  vacation:'שלום {שם}! 🌴\nרציתי להודיע שאני בחופשה ולא אוכל להגיע בתאריכים הקרובים.\nאחזור בקרוב ואצור קשר לתיאום המשך. תודה על ההבנה! 😊',
-};
-
-function getTpls(){
-  return Object.assign({},DEFAULT_TPLS,D.msgTpls||{});
-}
-
-function applyName(tpl,name){
-  return tpl.replace(/\{שם\}/g,name||'');
-}
-
-function loadMsgTpls(){
-  const t=getTpls();
-  ['visit','debt','done','vacation'].forEach(k=>{
-    const el=document.getElementById('tpl-'+k);
-    if(el)el.value=t[k]||'';
-  });
-}
-
-function saveMsgTpls(){
-  D.msgTpls={};
-  ['visit','debt','done','vacation'].forEach(k=>{
-    const el=document.getElementById('tpl-'+k);
-    if(el)D.msgTpls[k]=el.value;
-  });
-  saveData();toast('✅ התבניות נשמרו!');
-  updWAPreview();updWAAllPreview();
-}
-
 function buildMsg(type,name){
-  const t=getTpls();
-  if(type==='custom'){
-    const el=document.getElementById('wa-edit-text');
-    return el?el.value:'';
-  }
-  // חישוב חוב לתבנית תשלום
-  let tpl=applyName(t[type]||'',name);
-  if(type==='debt'){
-    let totalDebt=0;
-    Object.values(D.cal||{}).forEach(evs=>{
-      evs.forEach(ev=>{
-        if(ev.isNote||ev.cancelled||ev.paid||ev.client!==name)return;
-        const p=parseFloat((ev.price||'').toString().replace(/[^0-9.]/g,''))||0;
-        const mat=parseFloat((ev.materials||'').toString().replace(/[^0-9.]/g,''))||0;
-        const prof=parseFloat((ev.profit||'').toString().replace(/[^0-9.]/g,''))||0;
-        if(ev.done)totalDebt+=p+mat+prof;
-      });
-    });
-    if(totalDebt>0)tpl=tpl.replace('\nאפשר',`\nסה"כ חוב: *${totalDebt.toLocaleString()} ₪*\nאפשר`);
-  }
-  return tpl;
+  const custom=(document.getElementById('wa-custom')||{}).value||'';
+  return{
+    visit:`שלום ${name}! 🌿\nרציתי להזכיר שמחר אני מגיע לגינה שלך לביצוע עבודת גינון.\nלשאלות אפשר לחזור אליי. תודה! 😊`,
+    debt:`שלום ${name}! 🌿\nרציתי להזכיר שיש חשבון פתוח ממתין לתשלום.\nאפשר לסגור בנוחות — תודה!`,
+    done:`שלום ${name}! 🌿\nהעבודה בגינה שלך הושלמה בהצלחה!\nמקווה שאתה מרוצה. לכל שאלה אני זמין.`,
+    custom,
+  }[type]||'';
 }
-
-function openWADirect(phone,name,type,customMsg){
-  phone=(phone||'').replace(/[^0-9]/g,'');
-  if(phone.startsWith('0'))phone='972'+phone.slice(1);
-  const msg=customMsg!==undefined?applyName(customMsg,name):buildMsg(type,name);
-  window.open('https://wa.me/'+(phone||'972500000000')+'?text='+encodeURIComponent(msg),'_blank');
+function openWADirect(phone,name,type){
+  phone=phone.replace(/[^0-9]/g,'');if(phone.startsWith('0'))phone='972'+phone.slice(1);
+  const msg=buildMsg(type,name);
+  window.open(`https://wa.me/${phone||'972500000000'}?text=${encodeURIComponent(msg)}`,'_blank');
 }
-
 function refreshWASel(){
   const sel=document.getElementById('wa-sel');
   if(!sel)return;
-  sel.innerHTML='<option value="">-- בחר לקוח --</option>'+D.clients.map(c=>`<option value="${c.phone||''}" data-name="${c.name}">${c.name}</option>`).join('');
-  loadMsgTpls();
-  updWAAllCount();
+  sel.innerHTML='<option value="">-- בחר לקוח --</option>'+D.clients.map(c=>`<option value="${c.phone}">${c.name}</option>`).join('');
 }
-
-let _waEditOpen=false;
 function updWAPreview(){
   const selEl=document.getElementById('wa-sel');
   const type=document.getElementById('wa-type').value;
-  const prev=document.getElementById('wa-preview');
-  const editWrap=document.getElementById('wa-edit-wrap');
-  if(!selEl||!selEl.value){if(prev)prev.style.display='none';return;}
-  const name=selEl.options[selEl.selectedIndex].dataset.name||selEl.options[selEl.selectedIndex].text;
-  const msg=buildMsg(type,name);
-  if(prev){prev.textContent=msg;prev.style.display='block';}
-  if(_waEditOpen){
-    const et=document.getElementById('wa-edit-text');
-    if(et)et.value=msg;
-  }
-  if(editWrap)editWrap.style.display=_waEditOpen?'flex':'none';
+  const customWrap=document.getElementById('wa-custom-wrap');
+  customWrap.style.display=type==='custom'?'flex':'none';
+  if(!selEl.value){document.getElementById('wa-preview').style.display='none';return;}
+  const clientName=selEl.options[selEl.selectedIndex].text;
+  const msg=buildMsg(type,clientName);
+  const prev=document.getElementById('wa-preview');prev.textContent=msg;prev.style.display='block';
 }
-
-function toggleWAEdit(){
-  _waEditOpen=!_waEditOpen;
-  const btn=document.getElementById('wa-edit-btn');
-  const wrap=document.getElementById('wa-edit-wrap');
-  const prev=document.getElementById('wa-preview');
-  if(btn)btn.textContent=_waEditOpen?'👁 תצוגה':'✏️ ערוך';
-  if(wrap)wrap.style.display=_waEditOpen?'flex':'none';
-  if(_waEditOpen){
-    const selEl=document.getElementById('wa-sel');
-    const type=document.getElementById('wa-type').value;
-    const name=selEl&&selEl.value?(selEl.options[selEl.selectedIndex].dataset.name||''):'';
-    const msg=buildMsg(type,name);
-    const et=document.getElementById('wa-edit-text');
-    if(et)et.value=msg;
-    if(prev)prev.style.display='none';
-  } else {
-    if(prev)prev.style.display='block';
-  }
-}
-
-function syncWAEdit(){
-  // keep edit textarea as source of truth — nothing to sync live
-}
-
 function sendWA(){
   const sel=document.getElementById('wa-sel');
-  if(!sel||!sel.value){toast('בחר לקוח');return;}
-  const phone=sel.value;
-  const name=sel.options[sel.selectedIndex].dataset.name||sel.options[sel.selectedIndex].text;
+  if(!sel.value){toast('בחר לקוח');return;}
+  const phone=sel.value,name=sel.options[sel.selectedIndex].text;
   const type=document.getElementById('wa-type').value;
-  if(_waEditOpen){
-    const et=document.getElementById('wa-edit-text');
-    openWADirect(phone,name,type,et?et.value:'');
-  } else {
-    openWADirect(phone,name,type);
-  }
+  openWADirect(phone,name,type);
 }
-
-// שליחה לכולם
-const WA_ALL_TPLS={
-  visit:'',// ייטען מהתבניות
-  debt:'',
-  vacation:'',
-  seasonal:'שלום {שם}! 🌸\nברכות עונת האביב! מקווה שהגינה שלך פורחת יפה.\nנשמח לתת מענה לכל צורך גינוני. נדבר בקרוב! 🌿',
-  promo:'שלום {שם}! 🎁\nיש לנו עבורך הצעה מיוחדת לעונה הקרובה.\nצרו קשר לפרטים נוספים. תודה! 😊',
-};
-
-function loadWAAllTpl(){
-  const tpl=document.getElementById('wa-all-tpl').value;
-  if(!tpl)return;
-  const t=getTpls();
-  let txt='';
-  if(t[tpl])txt=t[tpl]; // מהתבניות הנשמרות
-  else if(WA_ALL_TPLS[tpl])txt=WA_ALL_TPLS[tpl];
-  const ta=document.getElementById('wa-all-text');
-  if(ta){ta.value=txt;updWAAllCount();updWAAllPreview();}
-}
-
-function updWAAllCount(){
-  const group=document.getElementById('wa-group');
-  const cnt=document.getElementById('wa-all-count');
-  if(!group||!cnt)return;
-  const gv=group.value;
-  const clients=gv==='all'?D.clients:D.clients.filter(c=>c.type===gv);
-  const withPhone=clients.filter(c=>c.phone);
-  cnt.textContent=`${withPhone.length} לקוחות ישלחו הודעה`;
-}
-
-function updWAAllPreview(){
-  const ta=document.getElementById('wa-all-text');
-  const prev=document.getElementById('wa-all-preview');
-  if(!ta||!prev)return;
-  const txt=ta.value.trim();
-  if(!txt){prev.style.display='none';return;}
-  // הצג דוגמה עם שם ראשון
-  const first=D.clients.find(c=>c.phone);
-  const sample=first?applyName(txt,first.name):txt;
-  prev.textContent='לדוגמה:\n'+sample;
-  prev.style.display='block';
-}
-
-function sendWAAllCustom(){
-  const group=(document.getElementById('wa-group')||{}).value||'all';
-  const txt=(document.getElementById('wa-all-text')||{}).value||'';
-  if(!txt.trim()){toast('כתוב הודעה לפני השליחה');return;}
-  const clients=group==='all'?D.clients:D.clients.filter(c=>c.type===group);
-  const withPhone=clients.filter(c=>c.phone);
-  if(!withPhone.length){toast('אין לקוחות עם מספר טלפון בקבוצה זו');return;}
-  if(!confirm(`שליחה ל-${withPhone.length} לקוחות. להמשיך?`))return;
-  toast(`שולח ל-${withPhone.length} לקוחות...`);
-  withPhone.forEach((c,i)=>{
-    setTimeout(()=>openWADirect(c.phone,c.name,null,txt),i*1600);
-  });
-}
-
-// נשמר לתאימות לאחור
 function sendWAAll(type){
   if(!D.clients.length){toast('אין לקוחות');return;}
-  const withPhone=D.clients.filter(c=>c.phone);
-  toast(`שולח ל-${withPhone.length} לקוחות...`);
-  withPhone.forEach((c,i)=>{
+  toast(`שולח ל-${D.clients.length} לקוחות...`);
+  D.clients.forEach((c,i)=>{
     setTimeout(()=>openWADirect(c.phone,c.name,type),i*1500);
   });
 }
@@ -2332,7 +2268,7 @@ async function buildDesign(){
     const r=await fetch('https://api.anthropic.com/v1/messages',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({model:'claude-sonnet-4-20250514',max_tokens:1200,messages})});
     const d=await r.json();
     load.style.display='none';res.classList.add('on');
-    res.innerHTML=(d.content&&d.content[0]?d.content[0].text:'').replace(/\n/g,'<br>').replace(/\*\*(.*?)\*\*/g,'<strong style="color:#7e22ce;">$1</strong>');
+    res.innerHTML=(d.content&&d.content[0]?d.content[0].text:'').replace(/\n/g,'<br>').replace(/\*\*(.*?)\*\*/g,'<strong style="color:var(--notet);">$1</strong>');
   }catch(e){load.style.display='none';res.classList.add('on');res.innerHTML='⚠️ אין חיבור לאינטרנט';}
 }
 
@@ -2492,7 +2428,7 @@ function renderWeek(){
 
     const hdrBg=isToday?'#166534':isSab?'#4c1d95':hol?'#92400e':'#1f2937';
 
-    html+=`<div style="border-radius:14px;overflow:hidden;border:${isToday?'2px solid #166534':'1.5px solid #e5e7eb'};margin-bottom:10px;background:#fff;box-shadow:0 2px 6px rgba(0,0,0,.06);">
+    html+=`<div style="border-radius:14px;overflow:hidden;border:${isToday?'2px solid #166534':'1.5px solid var(--gray3)'};margin-bottom:10px;background:var(--card);box-shadow:0 2px 6px rgba(0,0,0,.06);">
       <div style="background:${hdrBg};padding:10px 13px;display:flex;align-items:center;justify-content:space-between;">
         <div>
           <span style="color:#fff;font-size:15px;font-weight:800;">${DAYS[d]}</span>
@@ -2505,7 +2441,7 @@ function renderWeek(){
         </div>
       </div>
       <div>
-        ${notes.map(n=>`<div style="padding:7px 12px;border-bottom:1px solid #f3f4f6;background:#fdf4ff;display:flex;align-items:center;gap:7px;font-size:12px;"><span>📝</span><span style="color:#7e22ce;font-weight:600;">${n.client}</span></div>`).join('')}
+        ${notes.map(n=>`<div style="padding:7px 12px;border-bottom:1px solid #f3f4f6;background:var(--note);display:flex;align-items:center;gap:7px;font-size:12px;"><span>📝</span><span style="color:var(--notet);font-weight:600;">${n.client}</span></div>`).join('')}
         ${visits.length===0?`<div style="padding:12px;text-align:center;color:#9ca3af;font-size:12px;">${isSab?'🕯 שבת שלום':'אין ביקורים'}</div>`:
           visits.map(ev=>{
             const i=evs.indexOf(ev);
@@ -2518,26 +2454,26 @@ function renderWeek(){
               <div style="display:flex;justify-content:space-between;align-items:center;">
                 <div>
                   <span style="font-size:13px;font-weight:700;">${icon} ${ev.client}</span>
-                  ${ev.time?`<span style="font-size:11px;color:#6b7280;margin-right:5px;"> 🕐${ev.time}</span>`:''}
-                  ${ev.desc?`<div style="font-size:11px;color:#6b7280;margin-top:2px;">${ev.desc}</div>`:''}
+                  ${ev.time?`<span style="font-size:11px;color:var(--gray4);margin-right:5px;"> 🕐${ev.time}</span>`:''}
+                  ${ev.desc?`<div style="font-size:11px;color:var(--gray4);margin-top:2px;">${ev.desc}</div>`:''}
                 </div>
                 <div style="text-align:left;flex-shrink:0;">
-                  ${p>0?`<div style="font-size:12px;font-weight:800;color:#166534;">${p.toLocaleString()} ₪</div>`:''}
+                  ${p>0?`<div style="font-size:12px;font-weight:800;color:var(--green);">${p.toLocaleString()} ₪</div>`:''}
                   ${!_calStatsHidden&&prof>0?`<div style="font-size:10px;color:#059669;font-weight:700;">+${prof.toLocaleString()} ₪</div>`:''}
                 </div>
               </div>
               ${!ev.cancelled?`<div style="display:flex;gap:5px;margin-top:7px;flex-wrap:wrap;">
                 <button onclick="togVisit('${key}',${i},'done',this)" style="padding:4px 9px;border-radius:6px;font-size:11px;font-weight:700;cursor:pointer;border:none;background:${ev.done?'#dcfce7':'#f3f4f6'};color:${ev.done?'#166534':'#374151'};">${ev.done?'✅ בוצע':'☐ בוצע'}</button>
                 <button onclick="togVisit('${key}',${i},'paid',this)" style="padding:4px 9px;border-radius:6px;font-size:11px;font-weight:700;cursor:pointer;border:none;background:${ev.paid?'#dcfce7':'#f3f4f6'};color:${ev.paid?'#166534':'#374151'};">${ev.paid?'💰 שולם':'☐ שולם'}</button>
-                <button onclick="openEditVisit('${key}',${i})" style="padding:4px 9px;border-radius:6px;font-size:11px;cursor:pointer;border:1px solid #e5e7eb;background:#fff;">✏️</button>
-                <button onclick="openMoveVisit('${key}',${i})" style="padding:4px 9px;border-radius:6px;font-size:11px;cursor:pointer;border:1px solid #bfdbfe;background:#eff6ff;color:#1d4ed8;">📅 הזז</button>
-                <button onclick="cancelVisit('${key}',${i})" style="padding:4px 9px;border-radius:6px;font-size:11px;cursor:pointer;border:1px solid #fde68a;background:#fef3c7;color:#92400e;">❌</button>
+                <button onclick="openEditVisit('${key}',${i})" style="padding:4px 9px;border-radius:6px;font-size:11px;cursor:pointer;border:1px solid var(--gray3);background:var(--card);">✏️</button>
+                <button onclick="openMoveVisit('${key}',${i})" style="padding:4px 9px;border-radius:6px;font-size:11px;cursor:pointer;border:1px solid #bfdbfe;background:var(--blue2);color:#1d4ed8;">📅 הזז</button>
+                <button onclick="cancelVisit('${key}',${i})" style="padding:4px 9px;border-radius:6px;font-size:11px;cursor:pointer;border:1px solid #fde68a;background:var(--amber2);color:var(--amber);">❌</button>
               </div>`:
-              `<button onclick="cancelVisit('${key}',${i})" style="margin-top:6px;padding:4px 9px;border-radius:6px;font-size:11px;cursor:pointer;border:1px solid #e5e7eb;background:#f9fafb;">↩ בטל ביטול</button>`}
+              `<button onclick="cancelVisit('${key}',${i})" style="margin-top:6px;padding:4px 9px;border-radius:6px;font-size:11px;cursor:pointer;border:1px solid var(--gray3);background:var(--gray2);">↩ בטל ביטול</button>`}
             </div>`;
           }).join('')}
-        <div style="padding:6px 10px;background:#f9fafb;border-top:1px solid #f3f4f6;">
-          <button onclick="addNoteToDay('${key}')" style="width:100%;padding:5px;border:1px dashed #d1d5db;border-radius:7px;background:none;font-size:11px;color:#6b7280;cursor:pointer;font-family:inherit;">📝 הוסף הערה</button>
+        <div style="padding:6px 10px;background:var(--gray2);border-top:1px solid #f3f4f6;">
+          <button onclick="addNoteToDay('${key}')" style="width:100%;padding:5px;border:1px dashed #d1d5db;border-radius:7px;background:none;font-size:11px;color:var(--gray4);cursor:pointer;font-family:inherit;">📝 הוסף הערה</button>
         </div>
       </div>
     </div>`;
@@ -2572,10 +2508,10 @@ function renderTrimClientsList(){
       if(trim.type==='fixed' && trim.day>=0){
         trimInfo = `<span style="background:var(--green3);color:var(--green);padding:2px 8px;border-radius:5px;font-size:11px;font-weight:700;">✂️ יום ${DAYS_HEB[trim.day]} • ${FREQ_HEB[trim.freq]||''}</span>`;
       } else if(trim.type==='dates' && trim.dates&&trim.dates.length){
-        trimInfo = `<span style="background:#eff6ff;color:#1d4ed8;padding:2px 8px;border-radius:5px;font-size:11px;font-weight:700;">✂️ ${trim.dates.length} תאריכים</span>`;
+        trimInfo = `<span style="background:var(--blue2);color:#1d4ed8;padding:2px 8px;border-radius:5px;font-size:11px;font-weight:700;">✂️ ${trim.dates.length} תאריכים</span>`;
       }
     }
-    return `<div style="background:#fff;border:1px solid var(--gray3);border-radius:11px;padding:11px 14px;margin-bottom:8px;display:flex;align-items:center;justify-content:space-between;">
+    return `<div style="background:var(--card);border:1px solid var(--gray3);border-radius:11px;padding:11px 14px;margin-bottom:8px;display:flex;align-items:center;justify-content:space-between;">
       <div>
         <div style="font-size:13px;font-weight:700;">${c.name}</div>
         <div style="margin-top:4px;">${trimInfo}</div>
@@ -2749,7 +2685,26 @@ function addTrimSchedule(){}
 function renderTrimList(){}
 function openTrimSection(){ renderTrimClientsList(); }
 
-// ═══════════════ WA WITH DEBT (merged into buildMsg above) ═══════════════
+// ═══════════════ WA WITH DEBT ═══════════════
+function buildMsg(type,name,phone){
+  const custom=(document.getElementById('wa-custom')||{}).value||'';
+  // Calculate total debt for this client
+  let totalDebt=0;
+  Object.values(D.cal||{}).forEach(evs=>{
+    evs.forEach(ev=>{
+      if(ev.isNote||ev.cancelled||ev.paid||ev.client!==name)return;
+      const p=parseFloat((ev.price||'').toString().replace(/[^0-9.]/g,''))||0;
+      if(ev.done)totalDebt+=p;
+    });
+  });
+  const debtTxt=totalDebt>0?`\nסה"כ חוב: *${totalDebt.toLocaleString()} ₪*`:'';
+  return{
+    visit:`שלום ${name}! 🌿\nרציתי להזכיר שמחר אני מגיע לגינה שלך לביצוע עבודת גינון.\nלשאלות אפשר לחזור אליי. תודה! 😊`,
+    debt:`שלום ${name}! 🌿\nרציתי להזכיר שיש חשבון פתוח ממתין לתשלום.${debtTxt}\nאפשר לסגור בנוחות — תודה!`,
+    done:`שלום ${name}! 🌿\nהעבודה בגינה שלך הושלמה בהצלחה!\nמקווה שאתה מרוצה. לכל שאלה אני זמין.`,
+    custom,
+  }[type]||'';
+}
 
 
 
@@ -2765,7 +2720,7 @@ if('serviceWorker' in navigator) navigator.serviceWorker.register('./sw.js').cat
     <!-- Type selector -->
     <div style="display:flex;gap:6px;margin-bottom:14px;">
       <button id="trim-type-fixed" onclick="setTrimType('fixed')" style="flex:1;padding:9px;border-radius:9px;border:2px solid var(--green2);background:var(--green2);color:#fff;font-size:12px;font-weight:700;cursor:pointer;font-family:'Heebo',sans-serif;">🔁 ימים קבועים</button>
-      <button id="trim-type-dates" onclick="setTrimType('dates')" style="flex:1;padding:9px;border-radius:9px;border:2px solid var(--gray3);background:#fff;color:var(--gray);font-size:12px;font-weight:700;cursor:pointer;font-family:'Heebo',sans-serif;">📅 תאריכים ספציפיים</button>
+      <button id="trim-type-dates" onclick="setTrimType('dates')" style="flex:1;padding:9px;border-radius:9px;border:2px solid var(--gray3);background:var(--card);color:var(--gray);font-size:12px;font-weight:700;cursor:pointer;font-family:'Heebo',sans-serif;">📅 תאריכים ספציפיים</button>
     </div>
 
     <!-- FIXED schedule form -->
