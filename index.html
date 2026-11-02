@@ -296,6 +296,31 @@ tr:last-child td{border-bottom:none;}
 .menu-item .mt div:last-child{font-size:12px;color:var(--gray4);margin-top:2px;}
 .menu-item .arr{color:var(--gray4);font-size:18px;}
 
+
+.hero{background:var(--green);color:var(--onacc);border-radius:22px;padding:18px;display:flex;align-items:center;gap:16px;margin-bottom:18px;}
+.ring{position:relative;width:76px;height:76px;flex:none;}
+.ring svg{width:76px;height:76px;transform:rotate(90deg) scaleX(-1);}
+.ring circle{fill:none;stroke-width:8;}
+.ring .rbg{stroke:color-mix(in srgb,var(--onacc) 25%,transparent);}
+.ring .rfg{stroke:var(--onacc);stroke-linecap:round;transition:stroke-dashoffset .6s cubic-bezier(.2,.8,.2,1);}
+.ring b{position:absolute;inset:0;display:grid;place-items:center;font-family:var(--head);font-size:20px;}
+.hero-t{font-family:var(--head);font-size:21px;line-height:1.25;}
+.hero-m{opacity:.88;font-size:13px;margin-top:4px;}
+.sh{display:flex;justify-content:space-between;align-items:baseline;margin:2px 2px 10px;}
+.sh h3{font-family:var(--head);font-size:19px;}.sh span{font-size:12px;color:var(--gray4);}
+.tl{display:flex;flex-direction:column;gap:12px;margin-bottom:18px;}
+.tv{background:var(--card);border:1px solid var(--gray3);border-radius:20px;padding:14px;display:grid;grid-template-columns:auto 1fr;gap:3px 12px;animation:fadein .4s both;animation-delay:calc(var(--i)*70ms);}
+.tv.done{opacity:.72;}
+.tv-t{font-weight:700;color:var(--amber);font-size:14px;padding-top:2px;font-variant-numeric:tabular-nums;}
+.tv-n{font-weight:800;font-size:16px;}.tv.done .tv-n{text-decoration:line-through;text-decoration-color:var(--gray4);}
+.tv-d,.tv-a{grid-column:2;font-size:13px;color:var(--gray4);}
+.tv-x{grid-column:1/-1;display:flex;flex-wrap:wrap;gap:8px;margin-top:10px;align-items:center;}
+.chip{display:inline-flex;align-items:center;gap:5px;padding:7px 13px;border-radius:999px;border:1px solid var(--gray3);background:var(--gray2);font-size:13px;font-weight:600;font-family:'Heebo',sans-serif;color:var(--gray);cursor:pointer;text-decoration:none;transition:transform .15s;}
+.chip:active{transform:scale(.94);}
+.chip.on{background:var(--green);color:var(--onacc);border-color:var(--green);}
+.chip.pay.on{background:var(--amber);border-color:var(--amber);color:var(--onacc);}
+.tv-p{margin-inline-start:auto;font-weight:800;font-size:16px;}
+.tl-empty{background:var(--card);border:1px dashed var(--gray3);border-radius:20px;padding:22px;text-align:center;color:var(--gray4);font-size:14px;}
 /* NEW LOOK */
 body{transition:background .3s,color .3s;}
 .topbar h2{font-family:var(--head);font-size:21px;font-weight:700;}
@@ -360,6 +385,10 @@ body{transition:background .3s,color .3s;}
 
     <!-- DASHBOARD -->
     <div class="sec on" id="s-dash">
+      <div class="hero"><div class="ring"><svg viewBox="0 0 80 80"><circle class="rbg" cx="40" cy="40" r="34"/><circle class="rfg" id="ringfg" cx="40" cy="40" r="34" stroke-dasharray="213.6" stroke-dashoffset="213.6"/></svg><b id="ringtxt">0/0</b></div>
+        <div><div class="hero-t" id="herot">היום</div><div class="hero-m" id="herom"></div></div></div>
+      <div class="sh"><h3>סדר היום</h3><span id="today-date"></span></div>
+      <div class="tl" id="today-tl"></div>
       <div style="display:flex;justify-content:flex-end;margin-bottom:6px;">
         <button class="btn btn-gray btn-sm" onclick="toggleStats()" id="stats-toggle-btn" style="font-size:11px;">👁 הסתר כספים</button>
       </div>
@@ -371,7 +400,7 @@ body{transition:background .3s,color .3s;}
         <div class="stat"><div class="stat-l">👤 לקוחות</div><div class="stat-v" id="st-clients">0</div></div>
       </div><!-- /stats-box -->
       <div class="card">
-        <div class="ch"><h3>📋 ביקורים הקרובים</h3><button class="btn btn-g btn-sm" onclick="openAddEvent()">+ הוסף</button></div>
+        <div class="ch"><h3>📋 הביקורים הקרובים</h3><button class="btn btn-g btn-sm" onclick="openAddEvent()">+ הוסף</button></div>
         <div id="dash-upcoming"><div style="padding:16px;text-align:center;color:var(--gray4);font-size:13px;">לחץ + להוסיף ביקורים ללוח השנה</div></div>
       </div>
       <div class="card">
@@ -1197,6 +1226,50 @@ function exportHistoryCSV(){
   const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download=`visits-${new Date().toISOString().slice(0,10)}.csv`;a.click();toast('📥 ההיסטוריה הורדה');
 }
 
+
+// ═══════════════ TODAY SCREEN ═══════════════
+function _pn(x){return parseFloat((x||'').toString().replace(/[^0-9.]/g,''))||0;}
+function todayKey(){const n=new Date();return `${n.getFullYear()}-${String(n.getMonth()+1).padStart(2,'0')}-${String(n.getDate()).padStart(2,'0')}`;}
+function todayTog(i,field){
+  const key=todayKey(),ev=(D.cal[key]||[])[i];if(!ev)return;
+  const inv=document.getElementById('tog-inv');
+  if(field==='paid'&&!ev.done&&inv&&inv.checked){toast('⚠️ סמן קודם "בוצע"');return;}
+  ev[field]=!ev[field];
+  saveData();renderCal();updateStats();renderDash();
+}
+function clientAddr(ev){
+  if(ev.addr)return ev.addr;
+  const c=(D.clients||[]).find(c=>c.name===ev.client);return c&&c.addr?c.addr:'';
+}
+function wazeGo(addr){window.open('https://waze.com/ul?q='+encodeURIComponent(addr)+'&navigate=yes','_blank');}
+function renderTodayScreen(){
+  const key=todayKey(),now=new Date();
+  const days=['ראשון','שני','שלישי','רביעי','חמישי','שישי','שבת'];
+  document.getElementById('today-date').textContent=`יום ${days[now.getDay()]}, ${now.getDate()} ${MONTHS[now.getMonth()]}`;
+  const raw=D.cal[key]||[];
+  const list=[];raw.forEach((ev,i)=>{if(!ev.isNote&&!ev.cancelled)list.push({ev,i});});
+  list.sort((a,b)=>(a.ev.time||'99').localeCompare(b.ev.time||'99'));
+  const done=list.filter(x=>x.ev.done).length;
+  const tot=list.reduce((s,x)=>s+_pn(x.ev.price)+_pn(x.ev.profit),0);
+  const got=list.filter(x=>x.ev.paid).reduce((s,x)=>s+_pn(x.ev.price)+_pn(x.ev.profit),0);
+  document.getElementById('ringtxt').textContent=done+'/'+list.length;
+  document.getElementById('ringfg').style.strokeDashoffset=list.length?213.6*(1-done/list.length):213.6;
+  document.getElementById('herot').textContent=!list.length?'אין ביקורים היום':(done===list.length?'סיימת את כל הביקורים':(list.length-done)+' ביקורים נשארו להיום');
+  document.getElementById('herom').textContent=list.length?`נגבה ${Math.round(got).toLocaleString('he-IL')} ₪ מתוך ${Math.round(tot).toLocaleString('he-IL')} ₪`:'אפשר להוסיף ביקור מהלוח החודשי';
+  const el=document.getElementById('today-tl');
+  if(!list.length){el.innerHTML='<div class="tl-empty">אין ביקורים מתוכננים להיום</div>';return;}
+  el.innerHTML=list.map((x,n)=>{const ev=x.ev,addr=clientAddr(ev),amt=_pn(ev.price)+_pn(ev.profit);
+    const ph=(ev.phone||((D.clients||[]).find(c=>c.name===ev.client)||{}).phone||'').replace(/'/g,'');
+    const nm=(ev.client||'').replace(/'/g,"\\'");
+    return `<article class="tv${ev.done?' done':''}" style="--i:${n}"><div class="tv-t">${ev.time||'--:--'}</div><div class="tv-n">${ev.client||''}</div>
+    ${ev.desc?`<div class="tv-d">${ev.desc}</div>`:''}${addr?`<div class="tv-a">${addr}</div>`:''}
+    <div class="tv-x"><button class="chip${ev.done?' on':''}" onclick="todayTog(${x.i},'done')">✓ בוצע</button>
+    <button class="chip pay${ev.paid?' on':''}" onclick="todayTog(${x.i},'paid')">💰 שולם</button>
+    ${addr?`<button class="chip" onclick="wazeGo('${addr.replace(/'/g,"\\'")}')">📍 ניווט</button>`:''}
+    <button class="chip" onclick="openWADirect('${ph}','${nm}','visit')">📱 תזכורת</button>
+    <span class="tv-p">${amt?Math.round(amt).toLocaleString('he-IL')+' ₪':''}</span></div></article>`;}).join('');
+}
+
 // ═══════════════ NAVIGATION ═══════════════
 const TITLES={dash:'📊 לוח ראשי',clients:'👤 לקוחות',cal:'📅 לוח חודשי',week:'🗓 לוח שבועי',plants:'🌱 מאגר צמחים',more:'☰ עוד',jobs:'✅ מעקב עבודות',rem:'🔔 תזכורות',prices:'💰 מחירונים',trim:'✂️ סידור ימי גזם',wa:'📱 ווטסאפ',settings:'⚙️ הגדרות',reports:'📈 דוחות והיסטוריה'};
 function nav(id,el){
@@ -1254,6 +1327,7 @@ function updateStats(){
 
 // ═══════════════ DASHBOARD ═══════════════
 function renderDash(){
+  try{renderTodayScreen();}catch(e){console.error(e);}
   const now=new Date();
   const upcoming=[];
   for(let i=0;i<14;i++){
