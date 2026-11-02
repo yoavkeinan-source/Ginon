@@ -323,12 +323,13 @@ tr:last-child td{border-bottom:none;}
 .tl-empty{background:var(--card);border:1px dashed var(--gray3);border-radius:20px;padding:22px;text-align:center;color:var(--gray4);font-size:14px;}
 
 /* CALENDAR v2: dots + bottom sheet */
-.cgrid{gap:4px;}
-.cd{min-height:58px;border-radius:14px;padding:5px 3px;display:flex;flex-direction:column;align-items:center;gap:2px;}
+.cgrid{gap:3px;grid-template-columns:repeat(7,minmax(0,1fr));}.cd{min-width:0;}
+.cd{min-height:120px;border-radius:12px;padding:4px 3px;display:flex;flex-direction:column;align-items:stretch;gap:2px;overflow:visible;}
 .cd.om{visibility:hidden;}
 .cd .dn{font-size:13px;font-weight:700;}
-.cd .ce{font-size:0;line-height:0;width:7px;height:7px;padding:0;border-radius:50%;display:inline-block;margin:1px;vertical-align:middle;}
-.ce-done{background:var(--blue)!important;}.ce-paid{background:var(--green)!important;}.ce-todo{background:var(--amber)!important;}.ce-note{background:var(--notet)!important;}
+.cd .dn{text-align:center;}
+.cd .ce{display:-webkit-box;-webkit-box-orient:vertical;-webkit-line-clamp:2;font-size:9.5px;line-height:1.25;padding:2px 3px;border-radius:6px;margin:0;white-space:normal;overflow:hidden;word-break:break-word;font-weight:700;}
+.ce-done{background:var(--blue2);color:var(--blue);}.ce-paid{background:var(--green3);color:var(--green);}.ce-todo{background:var(--amber2);color:var(--amber);}.ce-note{background:var(--note);color:var(--notet);}
 .cd .hday{font-size:8px;text-align:center;line-height:1.1;white-space:normal;}
 .cd.today{border:2px solid var(--green);background:var(--green3);}
 .cd.selected{border:2px solid var(--selb);background:var(--sel);}
@@ -598,6 +599,7 @@ body{transition:background .3s,color .3s;}
         <div><div class="stat-l">בוטלו</div><div class="rep-big" style="color:var(--red)" id="rp-canc">0</div></div>
         <div id="rp-vat" style="grid-column:1/-1;display:none;"><div class="stat-l">מתוך הנגבה (עוסק מורשה)</div><div style="font-weight:700;" id="rp-vatv"></div></div>
       </div></div>
+      <div class="card"><div class="ch"><h3>הכנסות לפי שנה</h3><select id="rp-year" onchange="renderReports()" style="padding:6px 10px;border:1.5px solid var(--gray3);border-radius:10px;font-family:'Heebo',sans-serif;background:var(--card);color:var(--gray);"></select></div><div id="rp-chart" style="padding:10px 12px 14px;"></div><div id="rp-ysum" style="padding:0 16px 14px;font-size:13px;color:var(--gray4);"></div></div>
       <div class="card"><div class="ch"><h3>הכנסות לפי חודש</h3></div><div class="tw"><table class="rep-tbl"><thead><tr><th>חודש</th><th>נגבה</th><th>לא שולם</th><th>ביקורים</th><th></th></tr></thead><tbody id="rp-months"></tbody></table></div></div>
       <div class="card"><div class="ch"><h3>לפי לקוח</h3></div><div class="tw"><table class="rep-tbl"><thead><tr><th>לקוח</th><th>נגבה</th><th>לא שולם</th><th>ביקורים</th></tr></thead><tbody id="rp-clients"></tbody></table></div></div>
       <div class="card"><div class="ch"><h3>כל הביקורים</h3></div>
@@ -608,7 +610,8 @@ body{transition:background .3s,color .3s;}
       <div class="card"><div style="padding:14px 15px;display:flex;flex-direction:column;gap:9px;">
         <button class="btn btn-g" style="justify-content:center;" onclick="exportJSON()">📥 הורד גיבוי מלא (JSON)</button>
         <button class="btn btn-gray" style="justify-content:center;" onclick="exportHistoryCSV()">📥 הורד היסטוריית ביקורים (Excel/CSV)</button>
-        <button class="btn btn-gray" style="justify-content:center;" onclick="restoreSnapshot()">↩️ שחזור מגיבוי אוטומטי אחרון</button>
+        <button class="btn btn-gray" style="justify-content:center;" onclick="restoreSnapshot()">שחזור מגיבוי אוטומטי במכשיר</button>
+        <button class="btn btn-gray" style="justify-content:center;" onclick="restoreCloudBackup()">שחזור מגיבוי הענן</button>
       </div></div>
     </div>
 
@@ -720,7 +723,6 @@ body{transition:background .3s,color .3s;}
     <button class="bn" onclick="nav('clients',this)"><svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="8" r="3.5"/><path d="M2.5 20c.8-4 3.4-5.5 6.5-5.5s5.7 1.5 6.5 5.5"/><path d="M16 4.6a3.5 3.5 0 0 1 0 6.8M18 14.8c2 .7 3.2 2.4 3.5 5.2"/></svg><span>לקוחות</span></button>
     <button class="bn" onclick="nav('cal',this)"><svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="5" width="18" height="16" rx="3"/><path d="M8 3v4M16 3v4M3 10h18"/></svg><span>יומן</span></button>
     <button class="bn" onclick="nav('week',this)"><svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="5" width="18" height="16" rx="3"/><path d="M3 10h18M8 14h8M8 17.5h5"/></svg><span>שבועי</span></button>
-    <button class="bn" onclick="nav('plants',this)"><svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M5 19c0-8 5-14 15-14 0 10-6 15-14 15"/><path d="M5 19c3-5 6-8 10-10"/></svg><span>צמחים</span></button>
     <button class="bn" onclick="nav('more',this)"><svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M4 7h16M4 12h16M4 17h16"/></svg><span>עוד</span></button>
   </div>
 </div>
@@ -1204,7 +1206,12 @@ async function saveCloud(){
   if(!currentUser)return;
   try{
     document.getElementById('sync').classList.add('on');
-    await DB.collection('users').doc(currentUser.uid).set({data:JSON.stringify(D),updated:new Date().toISOString()});
+    const _day=new Date().toISOString().slice(0,10);
+    const payload={data:JSON.stringify(D),updated:new Date().toISOString()};
+    let _lastDay='';try{_lastDay=localStorage.getItem('gp_cloudbak_day')||'';}catch(e){}
+    if(_lastDay!==_day){payload.backup=payload.data;payload.backupDay=_day;}
+    await DB.collection('users').doc(currentUser.uid).set(payload,{merge:true});
+    if(payload.backup){try{localStorage.setItem('gp_cloudbak_day',_day);}catch(e){}}
     document.getElementById('sync').classList.remove('on');
   }catch(e){document.getElementById('sync').classList.remove('on');}
 }
@@ -1256,6 +1263,16 @@ function snapshotData(){
     }
   }catch(e){}
 }
+async function restoreCloudBackup(){
+  if(!currentUser){toast('צריך להיות מחובר');return;}
+  try{
+    const doc=await DB.collection('users').doc(currentUser.uid).get();
+    const b=doc.exists&&doc.data().backup;
+    if(!b){toast('עדיין אין גיבוי בענן. הוא נוצר אוטומטית בשמירה הבאה');return;}
+    if(!confirm('לשחזר את הנתונים מגיבוי הענן מתאריך '+(doc.data().backupDay||'')+'? הנתונים הנוכחיים יוחלפו.'))return;
+    D=JSON.parse(b);saveData();initApp();toast('הנתונים שוחזרו מהענן');
+  }catch(e){toast('השחזור מהענן נכשל');}
+}
 function restoreSnapshot(){
   try{
     const idx=JSON.parse(localStorage.getItem('gp10_snaps')||'[]');
@@ -1302,6 +1319,20 @@ function renderReports(){
   v.forEach(x=>{if(!x.client)return;const o=(cl[x.client]=cl[x.client]||{p:0,u:0,n:0});
     if(x.st==='paid')o.p+=x.amt;if(x.st==='unpaid')o.u+=x.amt;if(x.st==='paid'||x.st==='unpaid')o.n++;});
   document.getElementById('rp-clients').innerHTML=Object.keys(cl).sort((a,b)=>cl[b].p-cl[a].p).map(n=>`<tr><td>${n}</td><td><b>${fm(cl[n].p)}</b></td><td>${cl[n].u?fm(cl[n].u):'-'}</td><td>${cl[n].n}</td></tr>`).join('')||'<tr><td colspan="4" style="text-align:center;color:var(--gray4)">אין נתונים</td></tr>';
+  // yearly chart
+  const ys=[...new Set(v.map(x=>x.date.slice(0,4)).concat([String(new Date().getFullYear())]))].sort().reverse();
+  const sel=document.getElementById('rp-year');const cur=sel.value||ys[0];
+  sel.innerHTML=ys.map(y=>`<option value="${y}"${y===cur?' selected':''}>${y}</option>`).join('');
+  const yy=sel.value;const arr=Array.from({length:12},(_,i)=>{const k=yy+'-'+String(i+1).padStart(2,'0');return {p:(months[k]||{p:0}).p,u:(months[k]||{u:0}).u};});
+  const top=Math.max(1,...arr.map(a=>a.p+a.u));const W=360,H=170,pad=22,bw=(W-pad)/12;
+  let g='';[0,.5,1].forEach(t=>{const y=H-24-(H-44)*t;g+=`<line x1="${pad}" x2="${W}" y1="${y}" y2="${y}" stroke="var(--gray3)" stroke-width="1"/><text x="${pad-4}" y="${y+4}" font-size="9" text-anchor="end" fill="var(--gray4)">${t?Math.round(top*t/1000*10)/10+'k':'0'}</text>`;});
+  arr.forEach((a,i)=>{const x=pad+(11-i)*bw+bw*.18,w=bw*.64,hp=(H-44)*a.p/top,hu=(H-44)*a.u/top,y0=H-24;
+    g+=`<rect x="${x}" y="${y0-hp}" width="${w}" height="${hp}" rx="4" fill="var(--green)"/>`;
+    if(a.u)g+=`<rect x="${x}" y="${y0-hp-hu}" width="${w}" height="${hu}" rx="4" fill="var(--amber)" opacity=".75"/>`;
+    g+=`<text x="${x+w/2}" y="${H-8}" font-size="9" text-anchor="middle" fill="var(--gray4)">${MN[i]}</text>`;});
+  document.getElementById('rp-chart').innerHTML=`<svg viewBox="0 0 ${W} ${H}" style="width:100%;height:auto;display:block;">${g}</svg><div style="display:flex;gap:14px;font-size:12px;color:var(--gray4);margin-top:6px;"><span><i style="display:inline-block;width:10px;height:10px;border-radius:3px;background:var(--green);margin-inline-end:5px"></i>נגבה</span><span><i style="display:inline-block;width:10px;height:10px;border-radius:3px;background:var(--amber);margin-inline-end:5px"></i>לא שולם</span></div>`;
+  const yp=arr.reduce((t,a)=>t+a.p,0),yu=arr.reduce((t,a)=>t+a.u,0);
+  document.getElementById('rp-ysum').textContent=`סה"כ ${yy}: נגבה ${fm(yp)}${yu?' · לא שולם '+fm(yu):''}${yp?' · ממוצע חודשי '+fm(yp/arr.filter(a=>a.p).length):''}`;
   const q=(document.getElementById('rp-q').value||'').trim(),f=document.getElementById('rp-f').value;
   const list=v.filter(x=>(!f||x.st===f)&&(!q||(x.client+' '+x.desc).indexOf(q)>=0));
   document.getElementById('rp-all').innerHTML=list.slice(0,300).map(x=>`<tr><td>${fmtD(x.date)}</td><td>${x.client}</td><td>${x.amt?fm(x.amt):'-'}</td><td>${ST_LBL[x.st]}</td></tr>`).join('')||'<tr><td colspan="4" style="text-align:center;color:var(--gray4)">אין תוצאות</td></tr>';
@@ -1827,14 +1858,14 @@ function renderCal(){
     const evs=D.cal[key]||[];
     let inner=`<div class="dn">${d}</div>`;
     if(hol)inner+=`<div class="hday">${hol}</div>`;
-    evs.slice(0,3).forEach(ev=>{
-      if(ev.isNote)inner+=`<div class="ce ce-note">📝 ${ev.client.substring(0,8)}</div>`;
-      else if(ev.paid)inner+=`<div class="ce ce-paid">✅ ${ev.client.split(' ').pop()}</div>`;
-      else if(ev.done)inner+=`<div class="ce ce-done">🔵 ${ev.client.split(' ').pop()}</div>`;
-      else if(ev.cancelled)inner+=`<div class="ce" style="background:var(--red2);color:var(--red);">❌ ${ev.client.split(' ').pop()}</div>`;
-      else inner+=`<div class="ce ce-todo">🟡 ${ev.client.split(' ').pop()}</div>`;
+    evs.slice(0,4).forEach(ev=>{
+      if(ev.isNote)inner+=`<div class="ce ce-note">${ev.client}</div>`;
+      else if(ev.paid)inner+=`<div class="ce ce-paid">${ev.client}</div>`;
+      else if(ev.done)inner+=`<div class="ce ce-done">${ev.client}</div>`;
+      else if(ev.cancelled)inner+=`<div class="ce" style="background:var(--red2);color:var(--red);text-decoration:line-through;">${ev.client}</div>`;
+      else inner+=`<div class="ce ce-todo">${ev.client}</div>`;
     });
-    if(evs.length>3)inner+=`<div style="font-size:9px;color:var(--gray4);">+${evs.length-3}</div>`;
+    if(evs.length>4)inner+=`<div style="font-size:10px;font-weight:700;color:var(--gray4);text-align:center;">+${evs.length-4}</div>`;
     el.innerHTML=inner;
     el.onclick=()=>{window._selDate=key;showDay(key,d,m,y,el);};
     g.appendChild(el);
