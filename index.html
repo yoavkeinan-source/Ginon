@@ -456,6 +456,16 @@ tr:last-child td{border-bottom:none;}
 .today-plan{background:var(--amber2);border-radius:20px;padding:12px 14px;margin-bottom:16px;}
 .today-plan h3{font-family:var(--head);font-size:17px;margin-bottom:8px;color:var(--amber);}
 .today-plan .pl-li{padding:3px 0;}
+
+/* QUICK MOVE */
+.cd .ce[data-k]{cursor:pointer;transition:transform .15s,box-shadow .2s;}
+.cd .ce.sel{outline:2px solid var(--green);box-shadow:0 0 0 4px var(--green3);transform:scale(1.06);position:relative;z-index:2;}
+body.moving .cd:not(.om){border:1.5px dashed var(--green);}
+body.moving .cd .ce[data-k]:not(.sel):hover{outline:2px dashed var(--green);}
+#move-bar{position:fixed;left:12px;right:12px;bottom:calc(var(--safe-bottom) + 76px);z-index:170;background:var(--green);color:var(--onacc);border-radius:18px;padding:12px 14px;display:flex;align-items:center;gap:12px;box-shadow:0 10px 30px rgba(0,0,0,.3);transform:translateY(140%);opacity:0;pointer-events:none;transition:transform .3s cubic-bezier(.2,.8,.2,1),opacity .3s;}
+#move-bar.on{transform:none;opacity:1;pointer-events:auto;}
+#move-bar div{flex:1;min-width:0;}#move-bar b{display:block;font-size:15px;}#move-bar span{font-size:12px;opacity:.9;}
+#move-bar button{border:1px solid color-mix(in srgb,var(--onacc) 55%,transparent);background:none;color:var(--onacc);border-radius:12px;padding:8px 14px;font-family:'Heebo',sans-serif;font-weight:700;cursor:pointer;}
 /* NEW LOOK */
 body{transition:background .3s,color .3s;}
 .topbar h2{font-family:var(--head);font-size:21px;font-weight:700;}
@@ -597,6 +607,7 @@ body{transition:background .3s,color .3s;}
         <span style="display:flex;align-items:center;gap:4px;"><span style="width:10px;height:10px;background:var(--green3);border-radius:2px;display:inline-block;border:1px solid var(--green4);"></span>שולם</span>
         <span style="display:flex;align-items:center;gap:4px;"><span style="width:10px;height:10px;background:var(--note);border-radius:2px;display:inline-block;border:1px solid #f9a8d4;"></span>הערה</span>
       </div>
+      <div style="font-size:12px;color:var(--gray4);margin:0 2px 8px;">טיפ: הקש על לקוח ביומן כדי לסמן אותו, ואז הקש על יום אחר כדי להזיז, או על לקוח אחר כדי להכניס אותו לפניו. גם גרירה עובדת במחשב.</div>
       <div class="cgrid" style="margin-bottom:3px;">
         <div class="cdn">א</div><div class="cdn">ב</div><div class="cdn">ג</div><div class="cdn">ד</div><div class="cdn">ה</div><div class="cdn">ו</div><div class="cdn">ש</div>
       </div>
@@ -1716,6 +1727,75 @@ function renderTodayPlan(){
   el.innerHTML='<h3>בלוז להיום</h3>'+its.map(x=>planItemHtml(k,x.it,x.i,false)).join('');
 }
 
+
+// ═══════════════ QUICK MOVE / REORDER (tap to select, tap to place) ═══════════════
+let moveState=null,_undoMove=null;
+function chipTap(k,i){
+  const ev=(D.cal[k]||[])[i];if(!ev)return;
+  if(!moveState){moveState={k,i};document.body.classList.add('moving');showMoveBar();renderCal();return;}
+  if(moveState.k===k&&moveState.i===i){cancelMove();return;}
+  moveVisitTo(moveState.k,moveState.i,k,i);
+}
+function showMoveBar(){
+  const ev=(D.cal[moveState.k]||[])[moveState.i];if(!ev)return;
+  let b=document.getElementById('move-bar');
+  if(!b){b=document.createElement('div');b.id='move-bar';document.body.appendChild(b);}
+  b.innerHTML=`<div><b>${_esc(ev.client)}</b><span>הקש על יום להעברה, או על לקוח כדי להכניס לפניו</span></div><button onclick="cancelMove()">ביטול</button>`;
+  b.className='on';
+}
+function cancelMove(){moveState=null;document.body.classList.remove('moving');const b=document.getElementById('move-bar');if(b)b.className='';renderCal();}
+function _tmin(t){if(!t)return null;const a=String(t).split(':');return (+a[0])*60+(+a[1]||0);}
+function _fmin(n){n=Math.max(0,Math.min(23*60+59,n));return String(Math.floor(n/60)).padStart(2,'0')+':'+String(n%60).padStart(2,'0');}
+function moveVisitTo(sk,si,dk,beforeIdx){
+  const src=D.cal[sk];if(!src||!src[si])return;
+  _undoMove={sk,dk,a:JSON.stringify(D.cal[sk]||null),b:JSON.stringify(D.cal[dk]||null)};
+  const ev=src[si];
+  src.splice(si,1);if(!src.length&&sk!==dk)delete D.cal[sk];
+  if(!D.cal[dk])D.cal[dk]=[];
+  const dst=D.cal[dk];
+  let bi=beforeIdx;if(sk===dk&&bi!=null&&si<bi)bi--;
+  const pos=(bi==null)?dst.length:bi;
+  let prev=null,next=null;
+  for(let j=pos-1;j>=0;j--){if(!dst[j].isNote){prev=dst[j];break;}}
+  for(let j=pos;j<dst.length;j++){if(!dst[j].isNote){next=dst[j];break;}}
+  const pt=prev?_tmin(prev.time):null,nt=next?_tmin(next.time):null;
+  let t=null;
+  if(pt!=null&&nt!=null)t=pt<nt?Math.round((pt+nt)/2):pt;
+  else if(nt!=null)t=Math.max(0,nt-30);
+  else if(pt!=null)t=pt+60;
+  if(t!=null)ev.time=_fmin(t);
+  dst.splice(pos,0,ev);
+  moveState=null;document.body.classList.remove('moving');const b=document.getElementById('move-bar');if(b)b.className='';
+  saveData();renderCal();updateStats();renderDash();try{renderWeek();}catch(e){}
+  const dt=new Date(dk),off=dt.getDay()===6||HOLIDAYS[dk];
+  showUndoToast(`${ev.client} הועבר ל-${dt.getDate()} ב${MONTHS[dt.getMonth()]}${ev.time?' · '+ev.time:''}${off?' (שים לב: שבת או חג)':''}`);
+}
+function showUndoToast(msg){
+  const el=document.getElementById('toast-el');
+  el.innerHTML=`${_esc(msg)} <button onclick="undoMove()" style="margin-inline-start:10px;background:none;border:1px solid rgba(255,255,255,.5);color:#fff;border-radius:8px;padding:2px 10px;font-family:'Heebo',sans-serif;font-weight:700;cursor:pointer;">בטל</button>`;
+  el.style.pointerEvents='auto';el.classList.add('on');clearTimeout(tt);tt=setTimeout(()=>{el.classList.remove('on');el.style.pointerEvents='';},6000);
+}
+function undoMove(){
+  if(!_undoMove)return;const u=_undoMove;_undoMove=null;
+  if(u.a==='null')delete D.cal[u.sk];else D.cal[u.sk]=JSON.parse(u.a);
+  if(u.dk!==u.sk){if(u.b==='null')delete D.cal[u.dk];else D.cal[u.dk]=JSON.parse(u.b);}
+  saveData();renderCal();updateStats();renderDash();try{renderWeek();}catch(e){}
+  const el=document.getElementById('toast-el');el.classList.remove('on');el.style.pointerEvents='';toast('ההעברה בוטלה');
+}
+// desktop drag & drop
+(function(){
+  let dr=null;
+  document.addEventListener('dragstart',e=>{const c=e.target.closest&&e.target.closest('.ce[data-k]');if(!c)return;dr={k:c.dataset.k,i:+c.dataset.i};try{e.dataTransfer.setData('text/plain','v');e.dataTransfer.effectAllowed='move';}catch(x){}});
+  document.addEventListener('dragover',e=>{if(dr&&e.target.closest&&e.target.closest('#cgrid .cd'))e.preventDefault();});
+  document.addEventListener('drop',e=>{
+    if(!dr)return;const cell=e.target.closest&&e.target.closest('#cgrid .cd');if(!cell||!cell.dataset.key){dr=null;return;}
+    e.preventDefault();const chip=e.target.closest('.ce[data-k]');const d0=dr;dr=null;
+    if(chip){if(chip.dataset.k===d0.k&&+chip.dataset.i===d0.i)return;moveVisitTo(d0.k,d0.i,chip.dataset.k,+chip.dataset.i);}
+    else moveVisitTo(d0.k,d0.i,cell.dataset.key,null);
+  });
+  document.addEventListener('dragend',()=>{dr=null;});
+})();
+
 // ═══════════════ NAVIGATION ═══════════════
 const TITLES={dash:'היום',clients:'לקוחות',cal:'יומן חודשי',week:'לוח שבועי',plants:'מאגר צמחים',more:'עוד',jobs:'מעקב עבודות',rem:'תזכורות',prices:'מחירונים',trim:'סידור ימי גזם',wa:'ווטסאפ ללקוחות',settings:'הגדרות',reports:'דוחות והיסטוריה',plan:'לוז ותכנון'};
 function nav(id,el){
@@ -1733,7 +1813,7 @@ function nav(id,el){
   if(id==='reports')renderReports();
   if(id==='plan')renderPlan();
   if(id==='settings'){const v=document.getElementById('vat-sel');if(v)v.value=vatMode();}
-  if(id!=='cal')closeDayPanel();
+  if(id!=='cal'){closeDayPanel();if(moveState)cancelMove();}
 }
 
 // ═══════════════ STATS ═══════════════
@@ -2040,16 +2120,24 @@ function renderCal(){
     const evs=D.cal[key]||[];
     let inner=`<div class="dn">${d}</div>`;
     if(hol)inner+=`<div class="hday">${hol}</div>`;
-    evs.slice(0,4).forEach(ev=>{
-      if(ev.isNote)inner+=`<div class="ce ce-note">${ev.client}</div>`;
-      else if(ev.paid)inner+=`<div class="ce ce-paid">${ev.client}</div>`;
-      else if(ev.done)inner+=`<div class="ce ce-done">${ev.client}</div>`;
-      else if(ev.cancelled)inner+=`<div class="ce" style="background:var(--red2);color:var(--red);text-decoration:line-through;">${ev.client}</div>`;
-      else inner+=`<div class="ce ce-todo">${ev.client}</div>`;
+    evs.slice(0,4).forEach((ev,ei)=>{
+      if(ev.isNote){inner+=`<div class="ce ce-note">${ev.client}</div>`;return;}
+      const sel=(moveState&&moveState.k===key&&moveState.i===ei)?' sel':'';
+      const at=` data-k="${key}" data-i="${ei}" draggable="true"`;
+      if(ev.paid)inner+=`<div class="ce ce-paid${sel}"${at}>${ev.client}</div>`;
+      else if(ev.done)inner+=`<div class="ce ce-done${sel}"${at}>${ev.client}</div>`;
+      else if(ev.cancelled)inner+=`<div class="ce${sel}"${at} style="background:var(--red2);color:var(--red);text-decoration:line-through;">${ev.client}</div>`;
+      else inner+=`<div class="ce ce-todo${sel}"${at}>${ev.client}</div>`;
     });
     if(evs.length>4)inner+=`<div style="font-size:10px;font-weight:700;color:var(--gray4);text-align:center;">+${evs.length-4}</div>`;
     el.innerHTML=inner;
-    el.onclick=()=>{window._selDate=key;showDay(key,d,m,y,el);};
+    el.dataset.key=key;
+    el.onclick=(e)=>{
+      const c=e.target.closest&&e.target.closest('.ce[data-k]');
+      if(c){chipTap(c.dataset.k,+c.dataset.i);return;}
+      if(moveState){moveVisitTo(moveState.k,moveState.i,key,null);return;}
+      window._selDate=key;showDay(key,d,m,y,el);
+    };
     g.appendChild(el);
   }
 }
