@@ -10,6 +10,8 @@
 <meta http-equiv="Pragma" content="no-cache">
 <meta name="theme-color" content="#2f5d3a">
 <link rel="manifest" href="manifest.json">
+<link rel="icon" type="image/png" href="icon-192.png">
+<link rel="apple-touch-icon" href="icon-180.png">
 <title>גינון פרו</title>
 <link href="https://fonts.googleapis.com/css2?family=Frank+Ruhl+Libre:wght@500;700&family=Heebo:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
@@ -64,7 +66,7 @@ html,body{height:100%;font-family:'Heebo',sans-serif;background:var(--bg);color:
 /* LOGIN */
 #login{position:fixed;inset:0;z-index:999;background:linear-gradient(150deg,#052e16 0%,#166534 60%,#15803d 100%);display:flex;flex-direction:column;align-items:center;justify-content:center;padding:20px;}
 #login.hide{display:none;}
-.l-icon{font-size:56px;margin-bottom:6px;}
+.l-logo{width:104px;height:104px;border-radius:26px;margin-bottom:10px;box-shadow:0 12px 30px rgba(0,0,0,.35);animation:fadein .6s both;}
 .l-title{font-size:28px;font-weight:900;color:#fff;letter-spacing:-1px;}
 .l-sub{font-size:13px;color:rgba(255,255,255,.6);margin-bottom:28px;}
 .l-card{background:var(--card);border-radius:20px;padding:24px 20px;width:100%;max-width:360px;box-shadow:0 24px 48px rgba(0,0,0,.35);}
@@ -443,7 +445,7 @@ body{transition:background .3s,color .3s;}
 <body>
 
 <div id="login">
-  <div class="l-icon">🌿</div>
+  <img class="l-logo" src="icon-192.png" alt="גינון פרו">
   <div class="l-title">גינון פרו</div>
   <div class="l-sub">מערכת ניהול עסק גינון</div>
   <div class="l-card">
