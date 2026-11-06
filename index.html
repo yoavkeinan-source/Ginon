@@ -1878,7 +1878,7 @@ function dayTimeline(key){
 function daySummaryHtml(key){
   const tl=dayTimeline(key);if(!tl.count||tl.end==null)return '';
   const span=tl.end-tl.start;
-  return `<div class="day-sum"><div><b>מסיים בערך ב-${_fmin(tl.end)}</b><span>התחלה ${_fmin(tl.start)} · ${fmtDur(tl.work)} עבודה${span>tl.work?' · '+fmtDur(span-tl.work)+' הפסקות ונסיעות':''}</span>${wxDayLine(key)}</div><div style="display:flex;gap:6px;flex-wrap:wrap;justify-content:flex-end;"><button class="chip" onclick="calcTravel('${key}')">${ICO_PIN}חשב נסיעות</button><button class="chip" onclick="openRetime('${key}')">${ICO_WAND}סדר שעות</button></div></div>`;
+  return `<div class="day-sum"><div><b>מסיים בערך ב-${_fmin(tl.end)}</b><span>התחלה ${_fmin(tl.start)} · ${fmtDur(tl.work)} עבודה${span>tl.work?' · '+fmtDur(span-tl.work)+' הפסקות ונסיעות':''}</span>${wxDayLine(key)}</div><div style="display:flex;gap:6px;flex-wrap:wrap;justify-content:flex-end;"><button class="chip" onclick="calcTravel('${key}')">${ICO_PIN}חשב נסיעות</button>${(D.cal[key]||[]).some(e=>e.travel&&e.travelFrom)?`<button class="chip" onclick="clearTravel('${key}')">${ICO_X}בטל נסיעות</button>`:''}<button class="chip" onclick="openRetime('${key}')">${ICO_WAND}סדר שעות</button></div></div>`;
 }
 let _retimeKey=null;
 function openRetime(key){
@@ -1975,10 +1975,34 @@ function clientStats(){
 const SEASON={1:['גיזום עצים נשירים וורדים','נטיעת עצים ושיחים','ריסוס שמן חורף נגד מזיקים'],2:['סיום גיזום ורדים','דישון חורף','נטיעת שתילים'],3:['דישון אביב למדשאות','זריעת דשא חם','טיפול נגד פטריות'],4:['הדברת עשבים','בדיקת טפטפות והשקיה','דישון צמחי נוי'],5:['גיזום אחרי פריחה','הגברת השקיה','הדברת כנימות'],6:['השקיה עמוקה בבוקר','צל לצמחים רגישים','גיזום קל'],7:['בדיקת מערכות השקיה','השקיה מוקדם בבוקר','הדברת מזיקים'],8:['בדיקת מערכות השקיה','השקיה מוקדם בבוקר','איסוף פרי בשל'],9:['אוורור ודישון מדשאות','הכנת אדמה לנטיעות','גיזום סוף קיץ'],10:['זריעת דשא חורפי','דישון סתיו','נטיעות לפני הגשם'],11:['נטיעת עצים אחרי הגשם הראשון','איסוף עלים','בדיקת ניקוז'],12:['גיזום עצים נשירים','הגנה מקור על צמחים רגישים','בדיקת ניקוז וחצר']};
 function seasonTog(k){D.season=D.season||{};D.season[k]=!D.season[k];saveData();renderInsights();}
 // --- travel time (OSM geocode + OSRM route x traffic factor; Waze has no public API)
-function trafficFactor(min,dow){
-  if(dow===6)return 1;if(dow===5)return 1.1;
-  if(min>=405&&min<570)return 1.6;if(min>=930&&min<1140)return 1.7;if(min>=570&&min<930)return 1.2;return 1.05;
+function isPeak(min,dow){if(dow>=5)return false;return (min>=405&&min<570)||(min>=930&&min<1140);}
+const HWY=/(^|;)\s*(1|2|4|5|6|20|40|44|57|531|444|90|91)\s*(;|$)/;
+function routeMinutes(steps,min,dow){
+  const peak=isPeak(min,dow);let t=0;
+  steps.forEach(st=>{const hw=HWY.test(st.ref||'');const f=peak?(hw?1.7:1.15):(hw?1.1:1.0);t+=st.duration*f;});
+  return t/60;
 }
+function pairKey(a,b,peak){return [a,b].sort().join('→')+'|'+(peak?'p':'o');}
+
+function clearTravel(key){
+  (D.cal[key]||[]).forEach(e=>{delete e.travel;delete e.travelFrom;delete e.travelKm;});
+  chainDay(key);saveData();renderCal();try{renderDash();}catch(e){}
+  const q=key.split('-'),sel=document.querySelector('.cd.selected');
+  if(sel)showDay(key,parseInt(q[2]),parseInt(q[1])-1,parseInt(q[0]),sel);
+  toast('חישוב הנסיעות בוטל, חזרה להפרש הקבוע');
+}
+function setTravel(key,i,v){
+  const evs=D.cal[key]||[],ev=evs[i];if(!ev)return;
+  const vs=evs.filter(e=>!e.isNote&&!e.cancelled),k=vs.indexOf(ev);if(k<1)return;
+  const prev=vs[k-1];ev.travel=parseInt(v);ev.travelFrom=prev.client;ev.travelKm=null;
+  const dep=(_tmin(prev.time)??480)+evDur(prev),peak=isPeak(dep,new Date(key).getDay());
+  D.travelMem=D.travelMem||{};D.travelMem[pairKey(clientAddr(prev),clientAddr(ev),peak)]=ev.travel;
+  chainDay(key,true);saveData();renderCal();try{renderDash();}catch(e){}
+  const q=key.split('-'),sel=document.querySelector('.cd.selected');
+  if(sel)showDay(key,parseInt(q[2]),parseInt(q[1])-1,parseInt(q[0]),sel);
+  toast('נשמר. המערכת תזכור את זמן הנסיעה הזה'+(peak?' לשעות העומס':' לשעות רגילות'));
+}
+function TRAVEL_OPTS(sel){const a=[5,10,15,20,25,30,35,40,45,50,60,75,90];if(!a.includes(+sel))a.push(+sel);a.sort((x,y)=>x-y);return a.map(m=>`<option value="${m}"${m==sel?' selected':''}>${m} דק׳</option>`).join('');}
 function travelBefore(ev,prev,gap){return (ev.travel!=null&&ev.travelFrom===prev.client)?ev.travel:gap;}
 const _sleep=ms=>new Promise(r=>setTimeout(r,ms));
 async function geoAddr(addr){
@@ -1996,17 +2020,20 @@ async function calcTravel(key){
   toast('מחשב זמני נסיעה…');
   const dow=new Date(key).getDay();
   try{
+    D.travelMem=D.travelMem||{};
     for(let i=1;i<vs.length;i++){
-      const a=await geoAddr(clientAddr(vs[i-1])),b=await geoAddr(clientAddr(vs[i]));
-      const j=await _jget(`https://router.project-osrm.org/route/v1/driving/${a.lon},${a.lat};${b.lon},${b.lat}?overview=false`);
-      const sec=j.routes[0].duration;
-      const depart=(_tmin(vs[i-1].time)??480)+evDur(vs[i-1]);
-      vs[i].travel=Math.max(5,Math.ceil(sec/60*trafficFactor(depart,dow)/5)*5);vs[i].travelFrom=vs[i-1].client;
+      const depart=(_tmin(vs[i-1].time)??480)+evDur(vs[i-1]);const peak=isPeak(depart,dow);
+      const A=clientAddr(vs[i-1]),B=clientAddr(vs[i]);const mem=D.travelMem[pairKey(A,B,peak)];
+      if(mem){vs[i].travel=mem;vs[i].travelFrom=vs[i-1].client;vs[i].travelKm=null;continue;}
+      const a=await geoAddr(A),b=await geoAddr(B);
+      const j=await _jget(`https://router.project-osrm.org/route/v1/driving/${a.lon},${a.lat};${b.lon},${b.lat}?overview=false&steps=true`);
+      const rt=j.routes[0],steps=[].concat(...rt.legs.map(l=>l.steps));
+      vs[i].travel=Math.max(5,Math.ceil(routeMinutes(steps,depart,dow)/5)*5);vs[i].travelKm=Math.round(rt.distance/100)/10;vs[i].travelFrom=vs[i-1].client;
     }
     chainDay(key,true);saveData();renderCal();try{renderDash();}catch(e){}
     const q=key.split('-'),sel=document.querySelector('.cd.selected');
     if(sel)showDay(key,parseInt(q[2]),parseInt(q[1])-1,parseInt(q[0]),sel);
-    const tl=dayTimeline(key);toast('נסיעות חושבו · מסיים בערך ב-'+_fmin(tl.end));
+    const tl=dayTimeline(key);toast('נסיעות חושבו · '+vs.slice(1).map(v=>v.travel+' דק׳'+(v.travelKm?' ('+v.travelKm+' ק״מ)':'')).join(', ')+' · מסיים ב-'+_fmin(tl.end));
   }catch(e){toast('לא הצלחתי לחשב נסיעה. בדוק כתובות וחיבור');}
 }
 function renderInsights(){
@@ -2428,7 +2455,7 @@ function showDay(key,d,m,y,el){
           <div class="vr-info">
             <div class="vr-cl">${vi+1}. ${ev.client} <span style="font-size:11px;font-weight:700;color:${ev.cancelled?'#9ca3af':ev.paid?'var(--green)':ev.done?'var(--blue)':'var(--amber)'};">${statusIcon}</span></div>
             <div class="vr-desc">${ev.desc||''}</div>
-            <div class="vr-time">${ev.time?(ev.time+(ev.cancelled?'':'–'+_fmin(_tmin(ev.time)+evDur(ev)))):''}${ev.cancelled?'':' · '+fmtDur(evDur(ev))}${(ev.travel&&ev.travelFrom)?' · נסיעה '+ev.travel+' דק׳':''}</div>
+            <div class="vr-time">${ev.time?(ev.time+(ev.cancelled?'':'–'+_fmin(_tmin(ev.time)+evDur(ev)))):''}${ev.cancelled?'':' · '+fmtDur(evDur(ev))}${(ev.travel&&ev.travelFrom)?' · נסיעה '+ev.travel+' דק׳'+(ev.travelKm?' ('+ev.travelKm+' ק״מ)':''):''}</div>
           </div>
           <div class="vr-price">${p>0?p.toLocaleString()+' ₪':''} ${ev.profit&&parseFloat(ev.profit)>0?'<span style="font-size:10px;color:var(--green);font-weight:700;">+'+parseFloat(ev.profit).toLocaleString()+' ₪ רווח</span>':''}</div>
         </div>
@@ -2437,6 +2464,7 @@ function showDay(key,d,m,y,el){
           <button class="sbtn paid ${ev.paid?'on':''}" onclick="togVisit('${key}',${i},'paid',this)">${ev.paid?'✓ שולם':'שולם'}</button>
           <button class="sbtn" onclick="wazeVisit('${key}',${i})">${ICO_PIN}ניווט</button>
           <button class="sbtn" onclick="openWADirect('${ev.phone||''}','${ev.client}','visit')">${ICO_WA}הודעה</button>
+          ${(ev.travel&&ev.travelFrom&&!ev.cancelled)?`<select class="sbtn dur-q" title="תקן זמן נסיעה אליו. המערכת תזכור" onchange="setTravel('${key}',${i},this.value)">${TRAVEL_OPTS(ev.travel)}</select>`:''}
           ${ev.cancelled?'':`<select class="sbtn dur-q" title="זמן עבודה לביקור הזה בלבד" onchange="setVisitDur('${key}',${i},this.value)">${DUR_OPTS(evDur(ev))}</select>`}
           <button class="sbtn" onclick="openEditVisit('${key}',${i})">${ICO_EDIT}עריכה</button>
           <button class="sbtn" onclick="openMoveVisit('${key}',${i})">${ICO_MOVE}הזז</button>
