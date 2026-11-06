@@ -466,6 +466,14 @@ body.moving .cd .ce[data-k]:not(.sel):hover{outline:2px dashed var(--green);}
 #move-bar.on{transform:none;opacity:1;pointer-events:auto;}
 #move-bar div{flex:1;min-width:0;}#move-bar b{display:block;font-size:15px;}#move-bar span{font-size:12px;opacity:.9;}
 #move-bar button{border:1px solid color-mix(in srgb,var(--onacc) 55%,transparent);background:none;color:var(--onacc);border-radius:12px;padding:8px 14px;font-family:'Heebo',sans-serif;font-weight:700;cursor:pointer;}
+
+/* DURATION */
+.day-sum{display:flex;align-items:center;justify-content:space-between;gap:10px;background:var(--green3);color:var(--green);padding:11px 14px;}
+.day-sum b{display:block;font-family:var(--head);font-size:17px;}
+.day-sum span{font-size:12px;opacity:.85;}
+.tv-t small{display:block;font-size:11px;font-weight:600;color:var(--gray4);}
+.cc-dur{border:1px dashed var(--gray3);border-radius:10px;padding:5px 6px;font-family:'Heebo',sans-serif;font-size:13px;background:var(--gray2);color:var(--gray);margin-inline-start:6px;}
+.cc-mid{flex-wrap:wrap;gap:8px;}
 /* NEW LOOK */
 body{transition:background .3s,color .3s;}
 .topbar h2{font-family:var(--head);font-size:21px;font-weight:700;}
@@ -847,6 +855,7 @@ body{transition:background .3s,color .3s;}
     <div class="fi"><label>סוג חוזה</label><select id="ec-type"><option>חודשי</option><option>חד פעמי</option><option>רבעוני</option></select></div>
     <div class="fi"><label>💰 מחיר קבוע</label><input id="ec-fixed" type="text" placeholder="600"></div>
     <div class="fi"><label>🔁 כמה פעמים בחודש</label><select id="ec-freq"><option value="1">פעם אחת</option><option value="2">פעמיים</option><option value="3">3 פעמים</option><option value="4">4 פעמים</option></select></div>
+    <div class="fi"><label>זמן עבודה אצל הלקוח</label><select id="ec-dur"><option value="30">30 דק׳</option><option value="45">45 דק׳</option><option value="60" selected>1 שע׳</option><option value="75">1 שע׳ 15 דק׳</option><option value="90">1 שע׳ 30 דק׳</option><option value="105">1 שע׳ 45 דק׳</option><option value="120">2 שע׳</option><option value="150">2 שע׳ 30 דק׳</option><option value="180">3 שע׳</option><option value="210">3 שע׳ 30 דק׳</option><option value="240">4 שע׳</option><option value="300">5 שע׳</option><option value="360">6 שע׳</option><option value="480">8 שע׳</option></select></div>
     <div class="fi full"><label>הערות</label><textarea id="ec-notes" placeholder="כלב בגינה, שער נעול..."></textarea></div>
   </div></div>
   <div class="mf"><button class="btn btn-gray" onclick="closeM('m-edit-client')">ביטול</button><button class="btn btn-g" onclick="saveEditClient()">💾 שמור שינויים</button></div>
@@ -861,6 +870,7 @@ body{transition:background .3s,color .3s;}
     <div class="fi"><label>סוג חוזה</label><select id="nc-type"><option>חודשי</option><option>חד פעמי</option><option>רבעוני</option></select></div>
     <div class="fi"><label>💰 מחיר קבוע לטיפול</label><input id="nc-fixed" type="text" placeholder="600"></div>
     <div class="fi"><label>🔁 כמה פעמים בחודש</label><select id="nc-freq"><option value="1">פעם אחת</option><option value="2">פעמיים</option><option value="3">3 פעמים</option><option value="4">4 פעמים</option></select></div>
+    <div class="fi"><label>זמן עבודה אצל הלקוח</label><select id="nc-dur"><option value="30">30 דק׳</option><option value="45">45 דק׳</option><option value="60" selected>1 שע׳</option><option value="75">1 שע׳ 15 דק׳</option><option value="90">1 שע׳ 30 דק׳</option><option value="105">1 שע׳ 45 דק׳</option><option value="120">2 שע׳</option><option value="150">2 שע׳ 30 דק׳</option><option value="180">3 שע׳</option><option value="210">3 שע׳ 30 דק׳</option><option value="240">4 שע׳</option><option value="300">5 שע׳</option><option value="360">6 שע׳</option><option value="480">8 שע׳</option></select></div>
     <div class="fi full"><label>הערות</label><textarea id="nc-notes" placeholder="כלב בגינה, שער נעול..."></textarea></div>
   </div></div>
   <div class="mf"><button class="btn btn-gray" onclick="closeM('m-client')">ביטול</button><button class="btn btn-g" onclick="addClient()">💾 שמור</button></div>
@@ -885,6 +895,7 @@ body{transition:background .3s,color .3s;}
     <div class="fi full"><label>לקוח</label><input id="ev-edit-client" type="text"></div>
     <div class="fi"><label>תאריך</label><input id="ev-edit-date" type="date"></div>
     <div class="fi"><label>שעה</label><input id="ev-edit-time" type="time"></div>
+    <div class="fi"><label>זמן עבודה</label><select id="ev-edit-dur"><option value="30">30 דק׳</option><option value="45">45 דק׳</option><option value="60" selected>1 שע׳</option><option value="75">1 שע׳ 15 דק׳</option><option value="90">1 שע׳ 30 דק׳</option><option value="105">1 שע׳ 45 דק׳</option><option value="120">2 שע׳</option><option value="150">2 שע׳ 30 דק׳</option><option value="180">3 שע׳</option><option value="210">3 שע׳ 30 דק׳</option><option value="240">4 שע׳</option><option value="300">5 שע׳</option><option value="360">6 שע׳</option><option value="480">8 שע׳</option></select></div>
     <div class="fi"><label>💰 מחיר ביקור</label><input id="ev-edit-price" type="text" placeholder="₪"></div>
     <div class="fi"><label>🌸 חומרים (פרחים וכו')</label><input id="ev-edit-materials" type="text" placeholder="50"></div>
     <div class="fi"><label>📈 רווח על חומרים</label><input id="ev-edit-profit" type="text" placeholder="20"></div>
@@ -911,6 +922,7 @@ body{transition:background .3s,color .3s;}
     <div class="fi full"><label>או הכנס שם ידנית</label><input id="ev-name" type="text" placeholder="לקוח חדש שלא ברשימה..."></div>
     <div class="fi"><label>תאריך *</label><input id="ev-date" type="date"></div>
     <div class="fi"><label>שעה</label><input id="ev-time" type="time" value="09:00"></div>
+    <div class="fi"><label>זמן עבודה</label><select id="ev-dur"><option value="30">30 דק׳</option><option value="45">45 דק׳</option><option value="60" selected>1 שע׳</option><option value="75">1 שע׳ 15 דק׳</option><option value="90">1 שע׳ 30 דק׳</option><option value="105">1 שע׳ 45 דק׳</option><option value="120">2 שע׳</option><option value="150">2 שע׳ 30 דק׳</option><option value="180">3 שע׳</option><option value="210">3 שע׳ 30 דק׳</option><option value="240">4 שע׳</option><option value="300">5 שע׳</option><option value="360">6 שע׳</option><option value="480">8 שע׳</option></select></div>
     <div class="fi"><label>💰 מחיר (אוטומטי)</label><input id="ev-price" type="text" placeholder="₪"></div>
     <div class="fi full"><label>תיאור</label><input id="ev-desc" type="text" placeholder="גיזום, תחזוקה, דשא..."></div>
     <div class="fi full"><label>📝 הערה ביומן</label><input id="ev-note" type="text" placeholder="לקנות פרחים, להביא דשן..."></div>
@@ -984,6 +996,18 @@ body{transition:background .3s,color .3s;}
     </div>
   </div>
   <div class="mf"><button class="btn btn-gray" onclick="closeM('m-plan')">ביטול</button><button class="btn btn-g" onclick="savePlanItem()">שמור</button></div>
+</div></div>
+<div class="ov" id="m-retime"><div class="modal">
+  <div class="mh"><h3>סדר שעות ליום</h3><button class="mc" onclick="closeM('m-retime')">×</button></div>
+  <div class="mb">
+    <div class="sub" style="font-size:13px;color:var(--gray4);margin-bottom:10px;">השעות יחושבו לפי הסדר של הלקוחות ביום, וזמן העבודה של כל לקוח.</div>
+    <div class="fg">
+      <div class="fi"><label>התחלת עבודה</label><input id="rt-start" type="time" oninput="previewRetime()"></div>
+      <div class="fi"><label>זמן נסיעה בין לקוחות (דקות)</label><input id="rt-gap" type="number" min="0" step="5" oninput="previewRetime()"></div>
+    </div>
+    <div id="rt-prev" style="margin-top:12px;"></div>
+  </div>
+  <div class="mf"><button class="btn btn-gray" onclick="closeM('m-retime')">ביטול</button><button class="btn btn-g" onclick="applyRetime()">החל שעות</button></div>
 </div></div>
 <div class="toast" id="toast-el"></div>
 
@@ -1486,13 +1510,14 @@ function renderTodayScreen(){
   document.getElementById('ringtxt').textContent=done+'/'+list.length;
   document.getElementById('ringfg').style.strokeDashoffset=list.length?213.6*(1-done/list.length):213.6;
   document.getElementById('herot').textContent=!list.length?'אין ביקורים היום':(done===list.length?'סיימת את כל הביקורים':(list.length-done)+' ביקורים נשארו להיום');
-  document.getElementById('herom').textContent=list.length?`נגבה ${Math.round(got).toLocaleString('he-IL')} ₪ מתוך ${Math.round(tot).toLocaleString('he-IL')} ₪`:'אפשר להוסיף ביקור מהלוח החודשי';
+  const _tl=dayTimeline(key);
+  document.getElementById('herom').textContent=list.length?`${_tl.end!=null?'מסיים בערך ב-'+_fmin(_tl.end)+' · ':''}נגבה ${Math.round(got).toLocaleString('he-IL')} ₪ מתוך ${Math.round(tot).toLocaleString('he-IL')} ₪`:'אפשר להוסיף ביקור מהלוח החודשי';
   const el=document.getElementById('today-tl');
   if(!list.length){el.innerHTML='<div class="tl-empty">אין ביקורים מתוכננים להיום</div>';return;}
   el.innerHTML=list.map((x,n)=>{const ev=x.ev,addr=clientAddr(ev),amt=_pn(ev.price)+_pn(ev.profit);
     const ph=(ev.phone||((D.clients||[]).find(c=>c.name===ev.client)||{}).phone||'').replace(/'/g,'');
     const nm=(ev.client||'').replace(/'/g,"\\'");
-    return `<article class="tv${ev.done?' done':''}" style="--i:${n}"><div class="tv-t">${ev.time||'--:--'}</div><div class="tv-n">${ev.client||''}</div>
+    return `<article class="tv${ev.done?' done':''}" style="--i:${n}"><div class="tv-t">${ev.time||'--:--'}<small>${ev.time?'עד '+_fmin(_tmin(ev.time)+evDur(ev)):''}</small></div><div class="tv-n">${ev.client||''}</div>
     ${ev.desc?`<div class="tv-d">${ev.desc}</div>`:''}${addr?`<div class="tv-a">${addr}</div>`:''}
     <div class="tv-x"><button class="chip${ev.done?' on':''}" onclick="todayTog(${x.i},'done')">${ICO_CHECK}בוצע</button>
     <button class="chip pay${ev.paid?' on':''}" onclick="todayTog(${x.i},'paid')">${ICO_CASH}שולם</button>
@@ -1580,10 +1605,11 @@ function buildAutoPlan(){
       const key=_dk(new Date(y,m,best));
       load[key]=(load[key]||0)+1;mine.push(best);
       // time: next free slot
-      const taken=(D.cal[key]||[]).concat(plan.filter(x=>x.date===key)).map(e=>e.time).filter(Boolean);
       let t=c.time||'';
-      if(!t){let h=8,mm=0;while(taken.includes(`${String(h).padStart(2,'0')}:${String(mm).padStart(2,'0')}`)&&h<17){mm+=90;h+=Math.floor(mm/60);mm%=60;}t=`${String(h).padStart(2,'0')}:${String(mm).padStart(2,'0')}`;}
-      plan.push({name:c.name,date:key,time:t,price:c.fixed?String(c.fixed).replace(/[^0-9.]/g,''):'',phone:c.phone||''});
+      if(!t){let cur=8*60;const gap=(D.settings&&D.settings.gap!=null)?D.settings.gap:15;
+        (D.cal[key]||[]).filter(e=>!e.isNote&&!e.cancelled).concat(plan.filter(x=>x.date===key).map(x=>({client:x.name,time:x.time,dur:x.dur}))).forEach(e=>{const st=_tmin(e.time);if(st!=null)cur=Math.max(cur,st+evDur(e)+gap);});
+        t=_fmin(cur);}
+      plan.push({name:c.name,date:key,time:t,dur:c.dur||60,price:c.fixed?String(c.fixed).replace(/[^0-9.]/g,''):'',phone:c.phone||''});
     }
   });
   return plan.sort((a,b)=>a.date<b.date?-1:a.date>b.date?1:a.time.localeCompare(b.time));
@@ -1612,7 +1638,7 @@ function confirmAutoPlan(){
   _autoPlan.forEach(x=>{
     if(!D.cal[x.date])D.cal[x.date]=[];
     if(D.cal[x.date].some(e=>!e.isNote&&e.client===x.name))return;
-    D.cal[x.date].push({client:x.name,desc:'',time:x.time,price:x.price,phone:x.phone,done:false,paid:false,isNote:false,cancelled:false});
+    D.cal[x.date].push({client:x.name,desc:'',time:x.time,dur:x.dur,price:x.price,phone:x.phone,done:false,paid:false,isNote:false,cancelled:false});
   });
   const n=_autoPlan.length;_autoPlan=[];
   saveData();renderCal();updateStats();renderDash();closeM('m-planner');toast(`שובצו ${n} ביקורים`);
@@ -1795,6 +1821,54 @@ function undoMove(){
   });
   document.addEventListener('dragend',()=>{dr=null;});
 })();
+
+
+// ═══════════════ WORK DURATION / FINISH TIME ═══════════════
+const DUR_LIST=[30,45,60,75,90,105,120,150,180,210,240,300,360,480];
+function fmtDur(m){const h=Math.floor(m/60),mm=m%60;return (h?h+' שע׳':'')+(h&&mm?' ':'')+(mm?mm+' דק׳':'');}
+function DUR_OPTS(sel){const arr=DUR_LIST.includes(+sel)?DUR_LIST:DUR_LIST.concat([+sel]).sort((a,b)=>a-b);return arr.map(m=>`<option value="${m}"${m==sel?' selected':''}>${fmtDur(m)}</option>`).join('');}
+function evDur(ev){
+  const d=parseInt(ev&&ev.dur);if(d>0)return d;
+  const c=(D.clients||[]).find(x=>x.name===(ev&&ev.client));return (c&&parseInt(c.dur)>0)?parseInt(c.dur):60;
+}
+function updClientDur(id,v){const c=D.clients.find(x=>x.id===id);if(!c)return;c.dur=parseInt(v)||60;saveData();toast('זמן העבודה עודכן');}
+function dayTimeline(key){
+  const items=(D.cal[key]||[]).filter(e=>!e.isNote&&!e.cancelled).map(ev=>{const st=_tmin(ev.time);return {ev,s:st,e:st!=null?st+evDur(ev):null};});
+  const withT=items.filter(x=>x.s!=null);
+  return {items,count:items.length,start:withT.length?Math.min(...withT.map(x=>x.s)):null,end:withT.length?Math.max(...withT.map(x=>x.e)):null,work:items.reduce((t,x)=>t+evDur(x.ev),0)};
+}
+function daySummaryHtml(key){
+  const tl=dayTimeline(key);if(!tl.count||tl.end==null)return '';
+  const span=tl.end-tl.start;
+  return `<div class="day-sum"><div><b>מסיים בערך ב-${_fmin(tl.end)}</b><span>התחלה ${_fmin(tl.start)} · ${fmtDur(tl.work)} עבודה${span>tl.work?' · '+fmtDur(span-tl.work)+' הפסקות ונסיעות':''}</span></div><button class="chip" onclick="openRetime('${key}')">${ICO_WAND}סדר שעות</button></div>`;
+}
+let _retimeKey=null;
+function openRetime(key){
+  _retimeKey=key;const tl=dayTimeline(key);
+  document.getElementById('rt-start').value=tl.start!=null?_fmin(tl.start):'08:00';
+  document.getElementById('rt-gap').value=(D.settings&&D.settings.gap!=null)?D.settings.gap:15;
+  previewRetime();openM('m-retime');
+}
+function retimePlan(){
+  const start=_tmin(document.getElementById('rt-start').value)??480;
+  const gap=Math.max(0,parseInt(document.getElementById('rt-gap').value)||0);
+  let cur=start;const out=[];
+  (D.cal[_retimeKey]||[]).forEach((ev,i)=>{if(ev.isNote||ev.cancelled)return;const d=evDur(ev);out.push({ev,i,s:cur,e:cur+d});cur+=d+gap;});
+  return {out,gap,end:out.length?out[out.length-1].e:null};
+}
+function previewRetime(){
+  const p=retimePlan();
+  document.getElementById('rt-prev').innerHTML=p.out.map(x=>`<div class="plan-row"><div><b>${_esc(x.ev.client)}</b><small>${fmtDur(evDur(x.ev))}</small></div><div style="font-weight:800;font-variant-numeric:tabular-nums;">${_fmin(x.s)}–${_fmin(x.e)}</div></div>`).join('')+(p.end!=null?`<div class="day-sum" style="margin-top:10px;"><div><b>מסיים בערך ב-${_fmin(p.end)}</b></div></div>`:'');
+}
+function applyRetime(){
+  const p=retimePlan();
+  p.out.forEach(x=>{x.ev.time=_fmin(x.s);});
+  D.settings=D.settings||{};D.settings.gap=p.gap;
+  saveData();closeM('m-retime');renderCal();renderDash();try{renderWeek();}catch(e){}
+  const k=_retimeKey,parts=k.split('-'),sel=document.querySelector('.cd.selected');
+  if(sel)showDay(k,parseInt(parts[2]),parseInt(parts[1])-1,parseInt(parts[0]),sel);
+  toast(p.end!=null?'מסיים בערך ב-'+_fmin(p.end):'עודכן');
+}
 
 // ═══════════════ NAVIGATION ═══════════════
 const TITLES={dash:'היום',clients:'לקוחות',cal:'יומן חודשי',week:'לוח שבועי',plants:'מאגר צמחים',more:'עוד',jobs:'מעקב עבודות',rem:'תזכורות',prices:'מחירונים',trim:'סידור ימי גזם',wa:'ווטסאפ ללקוחות',settings:'הגדרות',reports:'דוחות והיסטוריה',plan:'לוז ותכנון'};
@@ -2011,7 +2085,7 @@ function renderClients(){
           <div class="cc-sub">${c.phone||''}${c.addr?' · '+c.addr:''}</div></div>
         <span class="cc-badge" style="background:${lbl.bg};color:${lbl.color};">${lbl.text}</span></div>
       <div class="cc-mid"><label>מחיר קבוע <input value="${c.fixed||''}" placeholder="—" onchange="updClientFixed(${c.id},this.value)"></label>
-        <span class="cc-debt ${debt>0?'bad':''}">${debt>0?'חוב '+debt.toLocaleString('he-IL')+' ₪':'ללא חוב'}</span></div>
+        <label>זמן עבודה <select class="cc-dur" onchange="updClientDur(${c.id},this.value)">${DUR_OPTS(c.dur||60)}</select></label><span class="cc-debt ${debt>0?'bad':''}">${debt>0?'חוב '+debt.toLocaleString('he-IL')+' ₪':'ללא חוב'}</span></div>
       <div class="cc-acts">
         <button class="chip" onclick="wazeClient(${c.id})">${ICO_PIN}ניווט</button>
         <button class="chip" onclick="openWADirect('${ph}','${nm}','visit')">${ICO_WA}הודעה</button>
@@ -2027,7 +2101,7 @@ function addClient(){
   if(!name||!phone){toast('מלא שם וטלפון');return;}
   const fixed=document.getElementById('nc-fixed').value.replace(/[^0-9]/g,'')||'';
   const freq=parseInt(document.getElementById('nc-freq').value)||1;
-  D.clients.unshift({id:Date.now(),name,phone,addr:document.getElementById('nc-addr').value,type:document.getElementById('nc-type').value,fixed,freq,notes:document.getElementById('nc-notes').value,debt:0});
+  D.clients.unshift({id:Date.now(),name,phone,addr:document.getElementById('nc-addr').value,type:document.getElementById('nc-type').value,fixed,freq,dur:parseInt(document.getElementById('nc-dur').value)||60,notes:document.getElementById('nc-notes').value,debt:0});
   saveData();renderClients();closeM('m-client');toast('👤 לקוח נוסף!');
   ['nc-name','nc-phone','nc-addr','nc-fixed','nc-notes'].forEach(id=>document.getElementById(id).value='');
 }
@@ -2043,6 +2117,7 @@ function openEditClient(id){
   document.getElementById('ec-type').value = c.type||'חודשי';
   document.getElementById('ec-fixed').value = c.fixed||'';
   document.getElementById('ec-freq').value = c.freq||1;
+  document.getElementById('ec-dur').value = c.dur||60;
   document.getElementById('ec-notes').value = c.notes||'';
   openM('m-edit-client');
 }
@@ -2060,6 +2135,7 @@ function saveEditClient(){
   c.type = document.getElementById('ec-type').value;
   c.fixed = document.getElementById('ec-fixed').value.replace(/[^0-9]/g,'')||'';
   c.freq = parseInt(document.getElementById('ec-freq').value)||1;
+  c.dur = parseInt(document.getElementById('ec-dur').value)||60;
   c.notes = document.getElementById('ec-notes').value;
   // Update name in calendar events if name changed
   if(oldName !== name){
@@ -2164,6 +2240,8 @@ function showDay(key,d,m,y,el){
   let html='';
   if(hol||dow===6) html+=`<div style="background:var(--holi);padding:9px 14px;font-size:13px;font-weight:700;color:var(--holit);">⚠️ ${hol||'שבת'} — לא מומלץ לתזמן ביקור ביום הזה</div>`;
 
+  html+=daySummaryHtml(key);
+
   // Notes
   notes.forEach((n,ni)=>{
     const i=evs.indexOf(n);
@@ -2186,7 +2264,7 @@ function showDay(key,d,m,y,el){
           <div class="vr-info">
             <div class="vr-cl">${vi+1}. ${ev.client} <span style="font-size:11px;font-weight:700;color:${ev.cancelled?'#9ca3af':ev.paid?'var(--green)':ev.done?'var(--blue)':'var(--amber)'};">${statusIcon}</span></div>
             <div class="vr-desc">${ev.desc||''}</div>
-            <div class="vr-time">${ev.time||''}</div>
+            <div class="vr-time">${ev.time?(ev.time+(ev.cancelled?'':'–'+_fmin(_tmin(ev.time)+evDur(ev)))):''}${ev.cancelled?'':' · '+fmtDur(evDur(ev))}</div>
           </div>
           <div class="vr-price">${p>0?p.toLocaleString()+' ₪':''} ${ev.profit&&parseFloat(ev.profit)>0?'<span style="font-size:10px;color:var(--green);font-weight:700;">+'+parseFloat(ev.profit).toLocaleString()+' ₪ רווח</span>':''}</div>
         </div>
@@ -2429,6 +2507,7 @@ function quickAddFromPlanner(name, fixed){
       const priceEl = document.getElementById('ev-price');
       if(p && priceEl) priceEl.value = p;
     }
+    try{autoPrice();}catch(e){}
   }, 150);
 }
 
@@ -2544,12 +2623,14 @@ function openAddEvent(prefillDate){
     const t=new Date();
     document.getElementById('ev-date').value=`${t.getFullYear()}-${String(t.getMonth()+1).padStart(2,'0')}-${String(t.getDate()).padStart(2,'0')}`;
   }
+  document.getElementById('ev-dur').value='60';
   openM('m-event');
 }
 function autoPrice(){
   const name=document.getElementById('ev-sel').value||document.getElementById('ev-search').value.trim();
   const c=D.clients.find(x=>x.name===name);
   if(c&&c.fixed){const p=c.fixed.replace(/[^0-9]/g,'');if(p)document.getElementById('ev-price').value=p;}
+  if(c&&c.dur)document.getElementById('ev-dur').value=c.dur;
 }
 function saveEvent(){
   const selVal=document.getElementById('ev-sel').value||document.getElementById('ev-search').value.trim();
@@ -2562,6 +2643,7 @@ function saveEvent(){
   D.cal[date].push({
     client,desc:document.getElementById('ev-desc').value||'גינון',
     time:document.getElementById('ev-time').value||'09:00',
+    dur:parseInt(document.getElementById('ev-dur').value)||60,
     price:document.getElementById('ev-price').value,
     phone:D.clients.find(c=>c.name===client)?.phone||'',
     done:false,paid:false,isNote:false
@@ -2984,6 +3066,7 @@ function openEditVisit(key,i){
   document.getElementById('ev-edit-client').value=ev.client||'';
   document.getElementById('ev-edit-date').value=key;
   document.getElementById('ev-edit-time').value=ev.time||'09:00';
+  document.getElementById('ev-edit-dur').value=evDur(ev);
   document.getElementById('ev-edit-price').value=ev.price||'';
   document.getElementById('ev-edit-materials').value=ev.materials||'';
   document.getElementById('ev-edit-profit').value=ev.profit||'';
@@ -2996,6 +3079,7 @@ function saveEditVisit(){
   const ev=D.cal[_editVisitKey][_editVisitIdx];
   ev.client=document.getElementById('ev-edit-client').value.trim();
   ev.time=document.getElementById('ev-edit-time').value;
+  ev.dur=parseInt(document.getElementById('ev-edit-dur').value)||60;
   ev.price=document.getElementById('ev-edit-price').value;
   ev.materials=document.getElementById('ev-edit-materials').value;
   ev.profit=document.getElementById('ev-edit-profit').value;
