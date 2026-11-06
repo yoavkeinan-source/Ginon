@@ -568,6 +568,17 @@ body{transition:background .3s,color .3s;}
     <div class="sec" id="s-clients">
       <div id="clients-stats" style="display:flex;flex-wrap:wrap;gap:7px;margin-bottom:11px;"></div>
       <div class="sbar"><input type="text" placeholder="חיפוש לקוח..." oninput="filterClients(this.value)"><button class="btn btn-g" onclick="openM('m-client')">+</button></div>
+      <div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:10px;" id="cfilters">
+        <button class="chip on" data-f="all" onclick="setCFilter('all')">הכל</button>
+        <button class="chip" data-f="reg" onclick="setCFilter('reg')">קבועים</button>
+        <button class="chip" data-f="one" onclick="setCFilter('one')">חד פעמיים</button>
+        <button class="chip" data-f="map" onclick="setCFilter('map')">🗺 מפה</button>
+      </div>
+      <div id="cmap-wrap" style="display:none;">
+        <div id="cmap" style="height:60vh;min-height:320px;border-radius:16px;overflow:hidden;border:1px solid var(--gray3);"></div>
+        <div id="cmap-st" style="font-size:12px;color:var(--gray4);margin:8px 2px;"></div>
+        <div style="display:flex;gap:6px;flex-wrap:wrap;"><button class="chip" onclick="setMapSet('reg')" id="mset-reg">קבועים</button><button class="chip" onclick="setMapSet('all')" id="mset-all">כל הלקוחות</button><button class="chip" onclick="openGoogleMapsAll()">פתח בגוגל מפות</button></div>
+      </div>
       <div id="ccards" class="ccards"></div>
     </div>
 
@@ -2396,7 +2407,7 @@ function renderClients(){
     const lbl=getClientLabel(c);
     const debt=parseFloat(c.debt||0)||0;
     const ph=(c.phone||'').replace(/'/g,'');const nm=(c.name||'').replace(/'/g,"\\'");
-    return `<article class="ccard" style="--i:${Math.min(n,12)}">
+    return `<article class="ccard" data-id="${c.id}" style="--i:${Math.min(n,12)}">
       <div class="cc-top"><div class="cc-av">${(c.name||'?').trim().charAt(0)}</div>
         <div class="cc-main"><div class="cc-name" onclick="openClientCard(${c.id})">${c.name}</div>
           <div class="cc-sub">${c.phone||''}${c.addr?' · '+c.addr:''}</div></div>
@@ -2469,7 +2480,61 @@ function saveEditClient(){
 
 function delClient(id){if(!confirm('למחוק לקוח זה?'))return;D.clients=D.clients.filter(c=>c.id!==id);saveData();renderClients();toast('🗑 נמחק');}
 function updClientFixed(id,v){const c=D.clients.find(x=>x.id===id);if(c){c.fixed=v.replace(/[^0-9]/g,'');saveData();}}
-function filterClients(v){document.querySelectorAll('#ccards .ccard').forEach(tr=>{tr.style.display=tr.textContent.toLowerCase().includes(v.toLowerCase())?'':'none';});}
+let _cf='all',_cq='';
+function isRegular(c){return c.type!=='חד פעמי';}
+function filterClients(v){
+  if(v!=null)_cq=v;
+  document.querySelectorAll('#ccards .ccard').forEach(tr=>{
+    const c=(D.clients||[]).find(x=>String(x.id)===tr.dataset.id);
+    const okF=_cf==='all'||_cf==='map'||!c||(_cf==='reg'?isRegular(c):!isRegular(c));
+    tr.style.display=(okF&&tr.textContent.toLowerCase().includes(_cq.toLowerCase()))?'':'none';});
+}
+function setCFilter(f){
+  _cf=f;document.querySelectorAll('#cfilters .chip').forEach(b=>b.classList.toggle('on',b.dataset.f===f));
+  const map=f==='map';document.getElementById('cmap-wrap').style.display=map?'':'none';
+  document.getElementById('ccards').style.display=map?'none':'';
+  if(map)showClientMap();else filterClients();
+}
+// --- clients map (Leaflet + OpenStreetMap, clustered)
+let _lmap=null,_mlayer=null,_mset='reg';
+function loadScript(src){return new Promise((ok,no)=>{const e=document.createElement('script');e.src=src;e.onload=ok;e.onerror=no;document.head.appendChild(e);});}
+function loadCss(href){const l=document.createElement('link');l.rel='stylesheet';l.href=href;document.head.appendChild(l);}
+async function ensureLeaflet(){
+  if(window.L&&L.markerClusterGroup)return;
+  loadCss('https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css');
+  loadCss('https://cdnjs.cloudflare.com/ajax/libs/leaflet.markercluster/1.5.3/MarkerCluster.min.css');
+  loadCss('https://cdnjs.cloudflare.com/ajax/libs/leaflet.markercluster/1.5.3/MarkerCluster.Default.min.css');
+  await loadScript('https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js');
+  await loadScript('https://cdnjs.cloudflare.com/ajax/libs/leaflet.markercluster/1.5.3/leaflet.markercluster.min.js');
+}
+function setMapSet(m){_mset=m;showClientMap();}
+function mapClients(){return (D.clients||[]).filter(c=>c.addr&&(_mset==='all'||isRegular(c)));}
+async function showClientMap(){
+  const st=document.getElementById('cmap-st');
+  document.getElementById('mset-reg').classList.toggle('on',_mset==='reg');document.getElementById('mset-all').classList.toggle('on',_mset==='all');
+  try{await ensureLeaflet();}catch(e){st.textContent='לא ניתן לטעון את המפה. בדוק חיבור';return;}
+  if(!_lmap){_lmap=L.map('cmap').setView([32.1,34.9],10);L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png',{maxZoom:19,attribution:'© OpenStreetMap'}).addTo(_lmap);}
+  setTimeout(()=>_lmap.invalidateSize(),50);
+  if(_mlayer)_lmap.removeLayer(_mlayer);_mlayer=L.markerClusterGroup();_lmap.addLayer(_mlayer);
+  const list=mapClients(),all=(D.clients||[]).filter(c=>_mset==='all'||isRegular(c)),noAddr=all.length-list.length;
+  const bounds=[];let done=0,fail=[];
+  st.textContent=`מאתר ${list.length} כתובות…`;
+  for(const c of list){
+    try{const g=await geoAddr(c.addr);
+      const m=L.marker([g.lat,g.lon]);
+      m.bindPopup(`<b>${_esc(c.name)}</b><br>${_esc(c.addr)}<br><a href="https://waze.com/ul?q=${encodeURIComponent(c.addr)}&navigate=yes" target="_blank">ניווט בוויז</a> · <a href="https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(c.addr)}" target="_blank">גוגל מפות</a>`);
+      _mlayer.addLayer(m);bounds.push([g.lat,g.lon]);done++;
+      if(bounds.length&&done%3===0)_lmap.fitBounds(bounds,{padding:[30,30],maxZoom:14});
+    }catch(e){fail.push(c.name);}
+    st.textContent=`${done} מתוך ${list.length} על המפה`;
+  }
+  if(bounds.length)_lmap.fitBounds(bounds,{padding:[30,30],maxZoom:14});
+  st.textContent=`${done} לקוחות על המפה`+(noAddr?` · ${noAddr} בלי כתובת`:'')+(fail.length?` · לא נמצאו: ${fail.join(', ')}`:'');
+}
+function openGoogleMapsAll(){
+  const a=mapClients().slice(0,10).map(c=>c.addr);if(!a.length){toast('אין כתובות');return;}
+  window.open('https://www.google.com/maps/dir/'+a.map(encodeURIComponent).join('/'),'_blank');
+}
 
 // ═══════════════ CALENDAR ═══════════════
 function renderCal(){
