@@ -650,6 +650,7 @@ body{transition:background .3s,color .3s;}
 
     <!-- MORE -->
     <div class="sec" id="s-more">
+      <div class="menu-item" onclick="nav('insights')"><div class="mi"><svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v2M5.6 5.6l1.4 1.4M3 12h2M18.4 5.6 17 7M21 12h-2"/><path d="M8 17a5 5 0 1 1 8 0c-1 1-1 2-1 3H9c0-1 0-2-1-3z"/></svg></div><div class="mt"><div>תובנות ותחזית</div><div>מזג אוויר, רווחיות ללקוח, תזכורות עונתיות</div></div><div class="arr">›</div></div>
       <div class="menu-item" onclick="nav('reports')"><div class="mi"><svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M4 20V10M10 20V4M16 20v-7M22 20H2"/></svg></div><div class="mt"><div>דוחות והיסטוריה</div><div>כל ההכנסות והביקורים מאז ומעולם</div></div><div class="arr">›</div></div>
       <div class="menu-item" onclick="nav('jobs')"><div class="mi"><svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M8 12.5l3 3 5-6"/></svg></div><div class="mt"><div>מעקב עבודות</div><div>בוצע · חשבונית · שולם</div></div><div class="arr">›</div></div>
       <div class="menu-item" onclick="nav('trim')"><div class="mi"><svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><circle cx="6" cy="7" r="2.5"/><circle cx="6" cy="17" r="2.5"/><path d="M8 8.5L20 18M8 15.5L20 6"/></svg></div><div class="mt"><div>סידור ימי גזם</div><div>תאריכים קבועים לגזם</div></div><div class="arr">›</div></div>
@@ -661,6 +662,7 @@ body{transition:background .3s,color .3s;}
 
 
     <!-- REPORTS -->
+    <div class="sec" id="s-insights"><div id="ins-body"></div></div>
     <div class="sec" id="s-reports">
       <div class="card"><div style="padding:14px 15px;display:grid;grid-template-columns:1fr 1fr;gap:12px;">
         <div><div class="stat-l">סה"כ נגבה (כל הזמנים)</div><div class="rep-big" id="rp-total">0 ₪</div></div>
@@ -1504,7 +1506,7 @@ function wazeGo(addr){window.open('https://waze.com/ul?q='+encodeURIComponent(ad
 function renderTodayScreen(){
   const key=todayKey(),now=new Date();
   const days=['ראשון','שני','שלישי','רביעי','חמישי','שישי','שבת'];
-  document.getElementById('today-date').textContent=`יום ${days[now.getDay()]}, ${now.getDate()} ${MONTHS[now.getMonth()]}`;
+  document.getElementById('today-date').textContent=`יום ${days[now.getDay()]}, ${now.getDate()} ${MONTHS[now.getMonth()]} · ${hebDate(now)}${HOLIDAYS[key]?' · '+HOLIDAYS[key]:''}`;
   const raw=D.cal[key]||[];
   const list=[];raw.forEach((ev,i)=>{if(!ev.isNote&&!ev.cancelled)list.push({ev,i});});
   list.sort((a,b)=>(a.ev.time||'99').localeCompare(b.ev.time||'99'));
@@ -1847,7 +1849,8 @@ function sortDayByTime(key){
 function chainDay(key,force){
   if(!force&&!autoChainOn())return;
   let cur=dayStartMin();const gap=gapMin();
-  (D.cal[key]||[]).forEach(ev=>{if(ev.isNote||ev.cancelled)return;ev.time=_fmin(cur);cur+=evDur(ev)+gap;});
+  let prev=null;
+  (D.cal[key]||[]).forEach(ev=>{if(ev.isNote||ev.cancelled)return;if(prev){cur+=travelBefore(ev,prev,gap)-gap;}ev.time=_fmin(cur);cur+=evDur(ev)+gap;prev=ev;});
 }
 
 // ═══════════════ WORK DURATION / FINISH TIME ═══════════════
@@ -1875,7 +1878,7 @@ function dayTimeline(key){
 function daySummaryHtml(key){
   const tl=dayTimeline(key);if(!tl.count||tl.end==null)return '';
   const span=tl.end-tl.start;
-  return `<div class="day-sum"><div><b>מסיים בערך ב-${_fmin(tl.end)}</b><span>התחלה ${_fmin(tl.start)} · ${fmtDur(tl.work)} עבודה${span>tl.work?' · '+fmtDur(span-tl.work)+' הפסקות ונסיעות':''}</span></div><button class="chip" onclick="openRetime('${key}')">${ICO_WAND}סדר שעות</button></div>`;
+  return `<div class="day-sum"><div><b>מסיים בערך ב-${_fmin(tl.end)}</b><span>התחלה ${_fmin(tl.start)} · ${fmtDur(tl.work)} עבודה${span>tl.work?' · '+fmtDur(span-tl.work)+' הפסקות ונסיעות':''}</span>${wxDayLine(key)}</div><div style="display:flex;gap:6px;flex-wrap:wrap;justify-content:flex-end;"><button class="chip" onclick="calcTravel('${key}')">${ICO_PIN}חשב נסיעות</button><button class="chip" onclick="openRetime('${key}')">${ICO_WAND}סדר שעות</button></div></div>`;
 }
 let _retimeKey=null;
 function openRetime(key){
@@ -1888,7 +1891,8 @@ function retimePlan(){
   const start=_tmin(document.getElementById('rt-start').value)??480;
   const gap=Math.max(0,parseInt(document.getElementById('rt-gap').value)||0);
   let cur=start;const out=[];
-  (D.cal[_retimeKey]||[]).forEach((ev,i)=>{if(ev.isNote||ev.cancelled)return;const d=evDur(ev);out.push({ev,i,s:cur,e:cur+d});cur+=d+gap;});
+  let prev=null;
+  (D.cal[_retimeKey]||[]).forEach((ev,i)=>{if(ev.isNote||ev.cancelled)return;if(prev){cur+=travelBefore(ev,prev,gap)-gap;}const d=evDur(ev);out.push({ev,i,s:cur,e:cur+d});cur+=d+gap;prev=ev;});
   return {out,gap,start,end:out.length?out[out.length-1].e:null};
 }
 function previewRetime(){
@@ -1905,8 +1909,132 @@ function applyRetime(){
   toast(p.end!=null?'מסיים בערך ב-'+_fmin(p.end):'עודכן');
 }
 
+
+// ═══════════════ INSIGHTS: WEATHER / PROFIT / SEASON / HOLIDAYS / TRAVEL ═══════════════
+function hebDate(d){try{return d.toLocaleDateString('he-IL-u-ca-hebrew',{day:'numeric',month:'long'});}catch(e){return '';}}
+function _lsGet(k,def){try{const v=localStorage.getItem(k);return v?JSON.parse(v):def;}catch(e){return def;}}
+function _lsSet(k,v){try{localStorage.setItem(k,JSON.stringify(v));}catch(e){}}
+async function _jget(url){const r=await fetch(url);if(!r.ok)throw new Error(r.status);return r.json();}
+// --- holidays sync (Hebcal)
+function applyHolidayCache(){[0,1].forEach(o=>{const y=new Date().getFullYear()+o;const c=_lsGet('gp_hol_'+y,null);if(c&&c.map)Object.assign(HOLIDAYS,c.map);});}
+async function syncHolidays(force){
+  for(const o of [0,1]){
+    const y=new Date().getFullYear()+o;const c=_lsGet('gp_hol_'+y,null);
+    if(!force&&c&&Date.now()-c.t<30*864e5)continue;
+    try{
+      const j=await _jget(`https://www.hebcal.com/hebcal?v=1&cfg=json&year=${y}&month=x&maj=on&min=off&mod=on&nx=off&mf=off&ss=off&i=on&lg=he&c=off`);
+      const map={};(j.items||[]).forEach(it=>{if(it.category!=='holiday'||!/^\d{4}-\d\d-\d\d$/.test(it.date||''))return;if(it.subcat&&!['major','modern'].includes(it.subcat))return;map[it.date]=(it.hebrew||it.title||'').replace(/[֑-ׇ]/g,'');});
+      if(Object.keys(map).length){_lsSet('gp_hol_'+y,{t:Date.now(),map});Object.assign(HOLIDAYS,map);}
+    }catch(e){}
+  }
+  try{renderCal();}catch(e){}
+}
+function upcomingHolidays(n){
+  const t=todayKey();const ks=Object.keys(HOLIDAYS).filter(k=>k>=t).sort();const out=[];let last='';
+  ks.forEach(k=>{const nm=HOLIDAYS[k];if(nm===last)return;last=nm;if(out.length<n)out.push({k,nm});});return out;
+}
+// --- weather (Open-Meteo, 3 independent models)
+function wxLoc(){return (D.settings&&D.settings.loc)||{name:'אבן יהודה',lat:32.2706,lon:34.8873};}
+async function wxFetch(force){
+  const L=wxLoc();const c=_lsGet('gp_wx',null);
+  if(!force&&c&&c.key===L.lat+','+L.lon&&Date.now()-c.t<3*3600e3)return c;
+  const j=await _jget(`https://api.open-meteo.com/v1/forecast?latitude=${L.lat}&longitude=${L.lon}&daily=temperature_2m_max,temperature_2m_min,precipitation_sum&models=ecmwf_ifs025,gfs_seamless,icon_seamless&timezone=auto&forecast_days=7`);
+  const d=j.daily,days=d.time.map((t,i)=>{
+    const pick=pre=>Object.keys(d).filter(k=>k.startsWith(pre)).map(k=>d[k][i]).filter(v=>v!=null);
+    const pr=pick('precipitation_sum'),tx=pick('temperature_2m_max'),tn=pick('temperature_2m_min');
+    const avg=a=>a.length?a.reduce((x,y)=>x+y,0)/a.length:null;
+    const wet=pr.filter(v=>v>=1).length;
+    return {date:t,max:avg(tx),min:avg(tn),rain:avg(pr),wet,models:pr.length};
+  });
+  const out={t:Date.now(),key:L.lat+','+L.lon,days};_lsSet('gp_wx',out);return out;
+}
+function wxVerdict(x){if(!x||!x.models)return '';const need=Math.ceil(x.models/2);return x.wet>=need?'rain':(x.wet>=1?'maybe':'');}
+function wxDayLine(key){
+  const c=_lsGet('gp_wx',null);if(!c)return '';const x=c.days.find(d=>d.date===key);const v=wxVerdict(x);
+  if(!x)return '';return `<span>${v==='rain'?'🌧 צפוי גשם ('+x.wet+' מתוך '+x.models+' מודלים) · ':v==='maybe'?'🌦 גשם אפשרי · ':'☀️ '}${Math.round(x.min)}°–${Math.round(x.max)}°</span>`;
+}
+async function setWxCity(){
+  const q=document.getElementById('wx-city').value.trim();if(!q)return;
+  try{const j=await _jget('https://geocoding-api.open-meteo.com/v1/search?count=1&language=he&name='+encodeURIComponent(q));
+    const r=j.results&&j.results[0];if(!r){toast('לא נמצאה עיר');return;}
+    D.settings=D.settings||{};D.settings.loc={name:r.name,lat:r.latitude,lon:r.longitude};saveData();localStorage.removeItem('gp_wx');renderInsights();
+  }catch(e){toast('אין חיבור לשרת מזג האוויר');}
+}
+// --- profitability
+function clientStats(){
+  const m={};
+  Object.values(D.cal||{}).forEach(evs=>(evs||[]).forEach(ev=>{
+    if(ev.isNote||ev.cancelled||!ev.client)return;
+    const r=m[ev.client]=m[ev.client]||{name:ev.client,n:0,hrs:0,inc:0,debt:0};
+    const amt=_pn(ev.price)+_pn(ev.profit);
+    if(ev.done){r.n++;r.hrs+=evDur(ev)/60;r.inc+=amt;if(!ev.paid)r.debt+=amt;}
+  }));
+  return Object.values(m).filter(r=>r.n>0&&r.hrs>0).map(r=>({...r,rate:r.inc/r.hrs})).sort((a,b)=>b.rate-a.rate);
+}
+// --- seasonal
+const SEASON={1:['גיזום עצים נשירים וורדים','נטיעת עצים ושיחים','ריסוס שמן חורף נגד מזיקים'],2:['סיום גיזום ורדים','דישון חורף','נטיעת שתילים'],3:['דישון אביב למדשאות','זריעת דשא חם','טיפול נגד פטריות'],4:['הדברת עשבים','בדיקת טפטפות והשקיה','דישון צמחי נוי'],5:['גיזום אחרי פריחה','הגברת השקיה','הדברת כנימות'],6:['השקיה עמוקה בבוקר','צל לצמחים רגישים','גיזום קל'],7:['בדיקת מערכות השקיה','השקיה מוקדם בבוקר','הדברת מזיקים'],8:['בדיקת מערכות השקיה','השקיה מוקדם בבוקר','איסוף פרי בשל'],9:['אוורור ודישון מדשאות','הכנת אדמה לנטיעות','גיזום סוף קיץ'],10:['זריעת דשא חורפי','דישון סתיו','נטיעות לפני הגשם'],11:['נטיעת עצים אחרי הגשם הראשון','איסוף עלים','בדיקת ניקוז'],12:['גיזום עצים נשירים','הגנה מקור על צמחים רגישים','בדיקת ניקוז וחצר']};
+function seasonTog(k){D.season=D.season||{};D.season[k]=!D.season[k];saveData();renderInsights();}
+// --- travel time (OSM geocode + OSRM route x traffic factor; Waze has no public API)
+function trafficFactor(min,dow){
+  if(dow===6)return 1;if(dow===5)return 1.1;
+  if(min>=405&&min<570)return 1.6;if(min>=930&&min<1140)return 1.7;if(min>=570&&min<930)return 1.2;return 1.05;
+}
+function travelBefore(ev,prev,gap){return (ev.travel!=null&&ev.travelFrom===prev.client)?ev.travel:gap;}
+const _sleep=ms=>new Promise(r=>setTimeout(r,ms));
+async function geoAddr(addr){
+  const c=_lsGet('gp_geo',{});if(c[addr])return c[addr];
+  await _sleep(1100);
+  const j=await _jget('https://nominatim.openstreetmap.org/search?format=json&limit=1&countrycodes=il&accept-language=he&q='+encodeURIComponent(addr));
+  if(!j.length)throw new Error('geo:'+addr);
+  const r={lat:+j[0].lat,lon:+j[0].lon};c[addr]=r;_lsSet('gp_geo',c);return r;
+}
+async function calcTravel(key){
+  const vs=(D.cal[key]||[]).filter(e=>!e.isNote&&!e.cancelled);
+  if(vs.length<2){toast('צריך לפחות שני לקוחות ביום');return;}
+  const miss=vs.filter(e=>!clientAddr(e)).map(e=>e.client);
+  if(miss.length){toast('חסרה כתובת: '+[...new Set(miss)].join(', '));return;}
+  toast('מחשב זמני נסיעה…');
+  const dow=new Date(key).getDay();
+  try{
+    for(let i=1;i<vs.length;i++){
+      const a=await geoAddr(clientAddr(vs[i-1])),b=await geoAddr(clientAddr(vs[i]));
+      const j=await _jget(`https://router.project-osrm.org/route/v1/driving/${a.lon},${a.lat};${b.lon},${b.lat}?overview=false`);
+      const sec=j.routes[0].duration;
+      const depart=(_tmin(vs[i-1].time)??480)+evDur(vs[i-1]);
+      vs[i].travel=Math.max(5,Math.ceil(sec/60*trafficFactor(depart,dow)/5)*5);vs[i].travelFrom=vs[i-1].client;
+    }
+    chainDay(key,true);saveData();renderCal();try{renderDash();}catch(e){}
+    const q=key.split('-'),sel=document.querySelector('.cd.selected');
+    if(sel)showDay(key,parseInt(q[2]),parseInt(q[1])-1,parseInt(q[0]),sel);
+    const tl=dayTimeline(key);toast('נסיעות חושבו · מסיים בערך ב-'+_fmin(tl.end));
+  }catch(e){toast('לא הצלחתי לחשב נסיעה. בדוק כתובות וחיבור');}
+}
+function renderInsights(){
+  const el=document.getElementById('ins-body');if(!el)return;
+  const fm=n=>Math.round(n).toLocaleString('he-IL');
+  const L=wxLoc(),now=new Date(),mo=now.getMonth()+1;
+  let h=`<div class="card" style="padding:15px;"><div style="font-family:var(--head);font-size:18px;font-weight:700;">${hebDate(now)} · ${now.getDate()} ${MONTHS[now.getMonth()]}</div><div style="font-size:13px;color:var(--gray4);margin-top:4px;">${upcomingHolidays(3).map(x=>x.nm+' – '+fmtD(x.k)).join(' · ')||'אין חגים קרובים'}</div><button class="chip" style="margin-top:10px;" onclick="syncHolidays(true).then(()=>{renderInsights();toast('החגים סונכרנו')})">סנכרן חגים</button></div>`;
+  h+=`<div class="card" style="padding:15px;"><div style="font-family:var(--head);font-size:18px;font-weight:700;margin-bottom:8px;">תחזית ל-${_esc(L.name)}</div><div style="display:flex;gap:6px;margin-bottom:10px;"><input id="wx-city" placeholder="עיר אחרת" style="flex:1;padding:8px;border:1.5px solid var(--gray3);border-radius:10px;background:var(--card);color:var(--gray);font-family:inherit;"><button class="chip" onclick="setWxCity()">עדכן</button></div><div id="wx-rows" style="font-size:13px;color:var(--gray4);">טוען תחזית…</div><div style="font-size:11px;color:var(--gray4);margin-top:8px;">ממוצע של שלושה מודלים עצמאיים: ECMWF האירופי, GFS האמריקאי ו-ICON הגרמני (Open-Meteo)</div></div>`;
+  const cs=clientStats();
+  if(cs.length){
+    const tot=cs.reduce((a,r)=>({i:a.i+r.inc,h:a.h+r.hrs,n:a.n+r.n}),{i:0,h:0,n:0}),avg=tot.i/tot.h,avgH=tot.h/tot.n;
+    h+=`<div class="card" style="padding:15px;"><div style="font-family:var(--head);font-size:18px;font-weight:700;">רווחיות ללקוח</div><div style="font-size:12px;color:var(--gray4);margin:3px 0 8px;">הכנסה (מחיר + רווח חומרים) לשעת עבודה, לפי ביקורים שבוצעו. ממוצע: ${fm(avg)} ₪ לשעה</div>`+cs.map(r=>{const low=r.rate<avg*0.7,rec=Math.round(avg*r.hrs/r.n/10)*10;
+      return `<div style="display:flex;justify-content:space-between;gap:8px;padding:9px 0;border-top:1px solid var(--gray3);"><div style="min-width:0;"><b>${_esc(r.name)}</b><div style="font-size:12px;color:var(--gray4);">${r.n} ביקורים · ${fmtDur(Math.round(r.hrs*60))}${r.debt>0?' · חוב '+fm(r.debt)+' ₪':''}</div>${low?`<div style="font-size:12px;color:var(--amber);">מתחת לממוצע. מחיר לביקור שיגיע לממוצע: ${fm(rec)} ₪</div>`:''}</div><div style="font-weight:800;color:${low?'var(--amber)':'var(--green)'};white-space:nowrap;">${fm(r.rate)} ₪/שעה</div></div>`;}).join('')+'</div>';
+  }
+  D.season=D.season||{};
+  h+=`<div class="card" style="padding:15px;"><div style="font-family:var(--head);font-size:18px;font-weight:700;margin-bottom:6px;">מה לעשות ב${MONTHS[mo-1]}</div>`+SEASON[mo].map((t,i)=>{const k=now.getFullYear()+'-'+mo+'-'+i;return `<label style="display:flex;gap:10px;align-items:center;padding:8px 0;border-top:1px solid var(--gray3);"><input type="checkbox" ${D.season[k]?'checked':''} onchange="seasonTog('${k}')"><span style="${D.season[k]?'text-decoration:line-through;opacity:.6':''}">${t}</span></label>`;}).join('')+`<div style="font-size:12px;color:var(--gray4);margin-top:8px;">בחודש הבא: ${SEASON[mo%12+1].join(', ')}</div></div>`;
+  el.innerHTML=h;
+  wxFetch().then(c=>{
+    const r=document.getElementById('wx-rows');if(!r)return;
+    const dn=['א׳','ב׳','ג׳','ד׳','ה׳','ו׳','ש׳'];
+    r.innerHTML=c.days.map(x=>{const v=wxVerdict(x),dt=new Date(x.date),vis=(D.cal[x.date]||[]).filter(e=>!e.isNote&&!e.cancelled).length;
+      return `<div style="display:flex;justify-content:space-between;padding:6px 0;border-top:1px solid var(--gray3);"><span>יום ${dn[dt.getDay()]} ${dt.getDate()}/${dt.getMonth()+1}${vis?' · '+vis+' ביקורים':''}${v==='rain'&&vis?' <b style="color:var(--red)">שקול להזיז</b>':''}</span><span>${v==='rain'?'🌧':v==='maybe'?'🌦':'☀️'} ${Math.round(x.min)}°–${Math.round(x.max)}°${x.rain>=0.5?' · '+x.rain.toFixed(1)+' מ״מ':''}</span></div>`;}).join('');
+  }).catch(()=>{const r=document.getElementById('wx-rows');if(r)r.textContent='אין חיבור לשרת מזג האוויר כרגע';});
+}
+applyHolidayCache();setTimeout(()=>{syncHolidays(false);wxFetch().then(()=>{try{renderCal();}catch(e){}}).catch(()=>{});},2500);
+
 // ═══════════════ NAVIGATION ═══════════════
-const TITLES={dash:'היום',clients:'לקוחות',cal:'יומן חודשי',week:'לוח שבועי',plants:'מאגר צמחים',more:'עוד',jobs:'מעקב עבודות',rem:'תזכורות',prices:'מחירונים',trim:'סידור ימי גזם',wa:'ווטסאפ ללקוחות',settings:'הגדרות',reports:'דוחות והיסטוריה',plan:'לוז ותכנון'};
+const TITLES={insights:'תובנות ותחזית',dash:'היום',clients:'לקוחות',cal:'יומן חודשי',week:'לוח שבועי',plants:'מאגר צמחים',more:'עוד',jobs:'מעקב עבודות',rem:'תזכורות',prices:'מחירונים',trim:'סידור ימי גזם',wa:'ווטסאפ ללקוחות',settings:'הגדרות',reports:'דוחות והיסטוריה',plan:'לוז ותכנון'};
 function nav(id,el){
   document.querySelectorAll('.sec').forEach(s=>s.classList.remove('on'));
   document.querySelectorAll('.bn').forEach(b=>b.classList.remove('on'));
@@ -1920,6 +2048,7 @@ function nav(id,el){
   if(id==='wa')refreshWASel();
   if(id==='dash'){renderDash();updateStats();}
   if(id==='reports')renderReports();
+  if(id==='insights')renderInsights();
   if(id==='plan')renderPlan();
   if(id==='settings'){const v=document.getElementById('vat-sel');if(v)v.value=vatMode();loadWorkPref();}
   if(id!=='cal'){closeDayPanel();if(moveState)cancelMove();}
@@ -2299,7 +2428,7 @@ function showDay(key,d,m,y,el){
           <div class="vr-info">
             <div class="vr-cl">${vi+1}. ${ev.client} <span style="font-size:11px;font-weight:700;color:${ev.cancelled?'#9ca3af':ev.paid?'var(--green)':ev.done?'var(--blue)':'var(--amber)'};">${statusIcon}</span></div>
             <div class="vr-desc">${ev.desc||''}</div>
-            <div class="vr-time">${ev.time?(ev.time+(ev.cancelled?'':'–'+_fmin(_tmin(ev.time)+evDur(ev)))):''}${ev.cancelled?'':' · '+fmtDur(evDur(ev))}</div>
+            <div class="vr-time">${ev.time?(ev.time+(ev.cancelled?'':'–'+_fmin(_tmin(ev.time)+evDur(ev)))):''}${ev.cancelled?'':' · '+fmtDur(evDur(ev))}${(ev.travel&&ev.travelFrom)?' · נסיעה '+ev.travel+' דק׳':''}</div>
           </div>
           <div class="vr-price">${p>0?p.toLocaleString()+' ₪':''} ${ev.profit&&parseFloat(ev.profit)>0?'<span style="font-size:10px;color:var(--green);font-weight:700;">+'+parseFloat(ev.profit).toLocaleString()+' ₪ רווח</span>':''}</div>
         </div>
