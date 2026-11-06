@@ -792,6 +792,11 @@ body{transition:background .3s,color .3s;}
           <div class="trow"><div class="tinfo"><h4>סנכרון מייל — סימון תשלום</h4><p>כשמגיע אישור מייל — מסמן שולם</p></div><label class="tog"><input type="checkbox" checked><span class="tsl"></span></label></div>
           <div class="trow"><div class="tinfo"><h4>שעת התחלה ברירת מחדל</h4><p>היום מתחיל בשעה הזו, וכל לקוח מחושב אחרי הקודם</p></div><input type="time" id="set-start" onchange="setWorkPref()" style="padding:8px;border:1.5px solid var(--gray3);border-radius:10px;font-family:'Heebo',sans-serif;background:var(--card);color:var(--gray);"></div>
           <div class="trow"><div class="tinfo"><h4>הפרש בין לקוחות (דקות)</h4><p>זמן נסיעה והפסקה בין לקוח ללקוח</p></div><input type="number" id="set-gap" min="0" step="5" onchange="setWorkPref()" style="width:80px;padding:8px;border:1.5px solid var(--gray3);border-radius:10px;font-family:'Heebo',sans-serif;background:var(--card);color:var(--gray);"></div>
+          <div class="trow"><div class="tinfo"><h4>תעריף שעה לעוזר (₪)</h4><p>לחישוב תשלום שבועי וחודשי לעוזר</p></div><input type="number" id="set-hrate" min="0" onchange="setBizPref()" style="width:80px;padding:8px;border:1.5px solid var(--gray3);border-radius:10px;font-family:'Heebo',sans-serif;background:var(--card);color:var(--gray);"></div>
+          <div class="trow"><div class="tinfo"><h4>תעריף שעה שלי (₪)</h4><p>לחישוב הצעות מחיר</p></div><input type="number" id="set-myrate" min="0" onchange="setBizPref()" style="width:80px;padding:8px;border:1.5px solid var(--gray3);border-radius:10px;font-family:'Heebo',sans-serif;background:var(--card);color:var(--gray);"></div>
+          <div class="trow"><div class="tinfo"><h4>נוסח הודעת "מחר אגיע"</h4><p>משתנים: {שם} {יום} {מ} {עד}</p></div></div>
+          <div style="padding:0 14px 12px;"><textarea id="set-tpl" onchange="setBizPref()" rows="3" style="width:100%;padding:8px;border:1.5px solid var(--gray3);border-radius:10px;font-family:'Heebo',sans-serif;background:var(--card);color:var(--gray);"></textarea></div>
+          <div class="trow"><div class="tinfo"><h4>כתובת בית / נקודת יציאה</h4><p>הסדר החכם יתחיל את המסלול משם</p></div><input id="set-home" placeholder="רחוב ועיר" onchange="setHome()" style="width:150px;padding:8px;border:1.5px solid var(--gray3);border-radius:10px;font-family:'Heebo',sans-serif;background:var(--card);color:var(--gray);"></div>
           <div class="trow"><div class="tinfo"><h4>חישוב שעות אוטומטי</h4><p>בכל הוספה, עריכה או הזזה השעות מתעדכנות לפי הסדר</p></div><select id="set-auto" onchange="setWorkPref()" style="padding:8px;border:1.5px solid var(--gray3);border-radius:10px;font-family:'Heebo',sans-serif;background:var(--card);color:var(--gray);"><option value="1">פעיל</option><option value="0">כבוי</option></select></div>
           <div class="trow"><div class="tinfo"><h4>סוג עוסק</h4><p>מורשה: מוצג בדוחות גם סכום המע"מ (18%) שכלול במחירים</p></div><select id="vat-sel" onchange="setVatMode(this.value)" style="padding:8px;border:1.5px solid var(--gray3);border-radius:10px;font-family:'Heebo',sans-serif;background:var(--card);color:var(--gray);"><option value="exempt">עוסק פטור</option><option value="licensed">עוסק מורשה</option></select></div>
           <div style="margin-top:12px;">
@@ -862,6 +867,7 @@ body{transition:background .3s,color .3s;}
     <div class="fi"><label>💰 מחיר קבוע</label><input id="ec-fixed" type="text" placeholder="600"></div>
     <div class="fi"><label>🔁 כמה פעמים בחודש</label><select id="ec-freq"><option value="1">פעם אחת</option><option value="2">פעמיים</option><option value="3">3 פעמים</option><option value="4">4 פעמים</option></select></div>
     <div class="fi"><label>זמן עבודה אצל הלקוח</label><select id="ec-dur"><option value="30">30 דק׳</option><option value="45">45 דק׳</option><option value="60" selected>1 שע׳</option><option value="75">1 שע׳ 15 דק׳</option><option value="90">1 שע׳ 30 דק׳</option><option value="105">1 שע׳ 45 דק׳</option><option value="120">2 שע׳</option><option value="150">2 שע׳ 30 דק׳</option><option value="180">3 שע׳</option><option value="210">3 שע׳ 30 דק׳</option><option value="240">4 שע׳</option><option value="300">5 שע׳</option><option value="360">6 שע׳</option><option value="480">8 שע׳</option></select></div>
+    <div class="fi"><label>הגיע דרך (המלצה)</label><input id="ec-ref" placeholder="שם מי שהמליץ / קבוצה"></div>
     <div class="fi full"><label>הערות</label><textarea id="ec-notes" placeholder="כלב בגינה, שער נעול..."></textarea></div>
   </div></div>
   <div class="mf"><button class="btn btn-gray" onclick="closeM('m-edit-client')">ביטול</button><button class="btn btn-g" onclick="saveEditClient()">💾 שמור שינויים</button></div>
@@ -877,6 +883,7 @@ body{transition:background .3s,color .3s;}
     <div class="fi"><label>💰 מחיר קבוע לטיפול</label><input id="nc-fixed" type="text" placeholder="600"></div>
     <div class="fi"><label>🔁 כמה פעמים בחודש</label><select id="nc-freq"><option value="1">פעם אחת</option><option value="2">פעמיים</option><option value="3">3 פעמים</option><option value="4">4 פעמים</option></select></div>
     <div class="fi"><label>זמן עבודה אצל הלקוח</label><select id="nc-dur"><option value="30">30 דק׳</option><option value="45">45 דק׳</option><option value="60" selected>1 שע׳</option><option value="75">1 שע׳ 15 דק׳</option><option value="90">1 שע׳ 30 דק׳</option><option value="105">1 שע׳ 45 דק׳</option><option value="120">2 שע׳</option><option value="150">2 שע׳ 30 דק׳</option><option value="180">3 שע׳</option><option value="210">3 שע׳ 30 דק׳</option><option value="240">4 שע׳</option><option value="300">5 שע׳</option><option value="360">6 שע׳</option><option value="480">8 שע׳</option></select></div>
+    <div class="fi"><label>הגיע דרך (המלצה)</label><input id="nc-ref" placeholder="שם מי שהמליץ / קבוצה"></div>
     <div class="fi full"><label>הערות</label><textarea id="nc-notes" placeholder="כלב בגינה, שער נעול..."></textarea></div>
   </div></div>
   <div class="mf"><button class="btn btn-gray" onclick="closeM('m-client')">ביטול</button><button class="btn btn-g" onclick="addClient()">💾 שמור</button></div>
@@ -906,6 +913,7 @@ body{transition:background .3s,color .3s;}
     <div class="fi"><label>🌸 חומרים (פרחים וכו')</label><input id="ev-edit-materials" type="text" placeholder="50"></div>
     <div class="fi"><label>📈 רווח על חומרים</label><input id="ev-edit-profit" type="text" placeholder="20"></div>
     <div class="fi full"><label>תיאור</label><input id="ev-edit-desc" type="text" placeholder="גיזום, תחזוקה..."></div>
+    <div class="fi"><label>👷 שעות עוזר</label><input id="ev-edit-help" type="number" min="0" step="0.5" placeholder="0"></div>
     <div class="fi full"><label>📝 הערות</label><input id="ev-edit-notes" type="text" placeholder="הערות נוספות..."></div>
   </div></div>
   <div class="mf"><button class="btn btn-gray" onclick="closeM('m-edit-visit')">ביטול</button><button class="btn btn-g" onclick="saveEditVisit()">💾 שמור</button></div>
@@ -1014,6 +1022,11 @@ body{transition:background .3s,color .3s;}
     <div id="rt-prev" style="margin-top:12px;"></div>
   </div>
   <div class="mf"><button class="btn btn-gray" onclick="closeM('m-retime')">ביטול</button><button class="btn btn-g" onclick="applyRetime()">החל שעות</button></div>
+</div></div>
+<div class="ov" id="m-route"><div class="modal">
+  <div class="mh"><h3>סדר ביקורים חכם</h3><button class="mc" onclick="closeM('m-route')">×</button></div>
+  <div class="mb"><div id="rt2-body"></div></div>
+  <div class="mf"><button class="btn btn-gray" onclick="closeM('m-route')">ביטול</button><button class="btn btn-g" id="rt2-apply" onclick="applyRoute()">החל סדר</button></div>
 </div></div>
 <div class="toast" id="toast-el"></div>
 
@@ -1836,7 +1849,7 @@ function undoMove(){
 function dayStartMin(){return _tmin((D.settings&&D.settings.dayStart)||'07:00')??420;}
 function gapMin(){return (D.settings&&D.settings.gap!=null)?D.settings.gap:15;}
 function autoChainOn(){return !(D.settings&&D.settings.auto===false);}
-function loadWorkPref(){const a=document.getElementById('set-start');if(!a)return;a.value=_fmin(dayStartMin());document.getElementById('set-gap').value=gapMin();document.getElementById('set-auto').value=autoChainOn()?'1':'0';}
+function loadWorkPref(){const a=document.getElementById('set-start');if(!a)return;a.value=_fmin(dayStartMin());document.getElementById('set-gap').value=gapMin();document.getElementById('set-home').value=(D.settings&&D.settings.home)||'';document.getElementById('set-hrate').value=(D.settings&&D.settings.helperRate)||'';document.getElementById('set-myrate').value=(D.settings&&D.settings.myRate)||'';document.getElementById('set-tpl').value=(D.settings&&D.settings.tpl)||TPL_DEF;document.getElementById('set-auto').value=autoChainOn()?'1':'0';}
 function setWorkPref(){D.settings=D.settings||{};D.settings.dayStart=document.getElementById('set-start').value||'07:00';D.settings.gap=Math.max(0,parseInt(document.getElementById('set-gap').value)||0);D.settings.auto=document.getElementById('set-auto').value==='1';
   if(D.settings.auto)Object.keys(D.cal).forEach(k=>chainDay(k,true));
   saveData();try{renderCal();renderDash();}catch(e){}toast('נשמר');}
@@ -1878,7 +1891,7 @@ function dayTimeline(key){
 function daySummaryHtml(key){
   const tl=dayTimeline(key);if(!tl.count||tl.end==null)return '';
   const span=tl.end-tl.start;
-  return `<div class="day-sum"><div><b>מסיים בערך ב-${_fmin(tl.end)}</b><span>התחלה ${_fmin(tl.start)} · ${fmtDur(tl.work)} עבודה${span>tl.work?' · '+fmtDur(span-tl.work)+' הפסקות ונסיעות':''}</span>${wxDayLine(key)}</div><div style="display:flex;gap:6px;flex-wrap:wrap;justify-content:flex-end;"><button class="chip" onclick="calcTravel('${key}')">${ICO_PIN}חשב נסיעות</button>${(D.cal[key]||[]).some(e=>e.travel&&e.travelFrom)?`<button class="chip" onclick="clearTravel('${key}')">${ICO_X}בטל נסיעות</button>`:''}<button class="chip" onclick="openRetime('${key}')">${ICO_WAND}סדר שעות</button></div></div>`;
+  return `<div class="day-sum"><div><b>מסיים בערך ב-${_fmin(tl.end)}</b><span>התחלה ${_fmin(tl.start)} · ${fmtDur(tl.work)} עבודה${span>tl.work?' · '+fmtDur(span-tl.work)+' הפסקות ונסיעות':''}</span>${wxDayLine(key)}</div><div style="display:flex;gap:6px;flex-wrap:wrap;justify-content:flex-end;"><button class="chip" onclick="smartRoute('${key}')">${ICO_WAND}סדר חכם</button><button class="chip" onclick="calcTravel('${key}')">${ICO_PIN}חשב נסיעות</button>${(D.cal[key]||[]).some(e=>e.travel&&e.travelFrom)?`<button class="chip" onclick="clearTravel('${key}')">${ICO_X}בטל נסיעות</button>`:''}<button class="chip" onclick="openRetime('${key}')">${ICO_WAND}סדר שעות</button></div></div>`;
 }
 let _retimeKey=null;
 function openRetime(key){
@@ -1984,6 +1997,118 @@ function routeMinutes(steps,min,dow){
 }
 function pairKey(a,b,peak){return [a,b].sort().join('→')+'|'+(peak?'p':'o');}
 
+
+
+// ═══════════════ MESSAGES / QUOTE / HELPER / REFERRALS ═══════════════
+const TPL_DEF='שלום {שם}, מחר ({יום}) אגיע אליך לגינה בין {מ} ל-{עד}. אם יש שינוי תכתוב לי 🌿';
+function setBizPref(){D.settings=D.settings||{};D.settings.helperRate=parseFloat(document.getElementById('set-hrate').value)||0;D.settings.myRate=parseFloat(document.getElementById('set-myrate').value)||0;D.settings.tpl=document.getElementById('set-tpl').value||TPL_DEF;saveData();toast('נשמר');}
+function waLink(phone,text){phone=(phone||'').replace(/[^0-9]/g,'');if(phone.startsWith('0'))phone='972'+phone.slice(1);return 'https://wa.me/'+(phone||'')+'?text='+encodeURIComponent(text);}
+function nextVisitDay(){
+  const d=new Date();for(let i=1;i<=7;i++){const x=new Date(d.getFullYear(),d.getMonth(),d.getDate()+i),k=_dk(x);
+    if((D.cal[k]||[]).some(e=>!e.isNote&&!e.cancelled))return {k,d:x};}
+  return null;
+}
+function tomorrowList(){
+  const n=nextVisitDay();if(!n)return null;
+  const days=['ראשון','שני','שלישי','רביעי','חמישי','שישי','שבת'],tpl=(D.settings&&D.settings.tpl)||TPL_DEF;
+  return {k:n.k,rows:(D.cal[n.k]||[]).map((ev,i)=>({ev,i})).filter(x=>!x.ev.isNote&&!x.ev.cancelled).map(x=>{
+    const st=_tmin(x.ev.time),c=(D.clients||[]).find(c=>c.name===x.ev.client);
+    const msg=tpl.replace('{שם}',x.ev.client).replace('{יום}',days[n.d.getDay()]).replace('{מ}',st!=null?_fmin(st):'').replace('{עד}',st!=null?_fmin(st+30):'');
+    return {...x,phone:x.ev.phone||(c&&c.phone)||'',msg};})};
+}
+function sendDayMsg(key,i){
+  const t=tomorrowList();const r=t&&t.k===key&&t.rows.find(x=>x.i===i);if(!r)return;
+  if(!r.phone){toast('אין טלפון ללקוח');return;}
+  r.ev.msgSent=true;saveData();window.open(waLink(r.phone,r.msg),'_blank');renderInsights();
+}
+function quoteCalc(){
+  const g=id=>parseFloat(document.getElementById(id).value)||0;
+  const hrs=g('q-h'),rate=g('q-r'),mat=g('q-m'),mk=g('q-k');
+  const lab=hrs*rate,mt=mat*(1+mk/100),tot=Math.round((lab+mt)/10)*10;
+  document.getElementById('q-out').textContent=tot?tot.toLocaleString('he-IL')+' ₪':'';
+  document.getElementById('q-det').textContent=tot?`עבודה ${Math.round(lab).toLocaleString('he-IL')} ₪ + חומרים ${Math.round(mt).toLocaleString('he-IL')} ₪`:'';
+  window._quote={tot,hrs,lab,mt};
+}
+function sendQuote(){
+  const q=window._quote;if(!q||!q.tot){toast('מלא שעות ותעריף');return;}
+  const nm=document.getElementById('q-n').value.trim(),c=(D.clients||[]).find(x=>x.name===nm);
+  const msg=`שלום${nm?' '+nm:''}, הצעת מחיר לעבודה: ${q.tot.toLocaleString('he-IL')} ₪ (כ-${q.hrs} שעות עבודה כולל חומרים). ההצעה בתוקף 14 יום. נשמח לתאם 🌿`;
+  window.open(waLink(c&&c.phone||'',msg),'_blank');
+}
+function helperTotals(){
+  const rate=(D.settings&&D.settings.helperRate)||0,now=new Date(),wk=new Date(now.getFullYear(),now.getMonth(),now.getDate()-now.getDay());
+  const wk0=_dk(wk),mo0=now.getFullYear()+'-'+String(now.getMonth()+1).padStart(2,'0');let w=0,m=0;
+  Object.entries(D.cal||{}).forEach(([k,evs])=>(evs||[]).forEach(e=>{if(e.isNote||e.cancelled||!e.helpH)return;if(k>=wk0&&k<=_dk(new Date(wk.getFullYear(),wk.getMonth(),wk.getDate()+6)))w+=e.helpH;if(k.startsWith(mo0))m+=e.helpH;}));
+  return {rate,w,m};
+}
+function referralStats(){
+  const inc={};Object.values(D.cal||{}).forEach(evs=>(evs||[]).forEach(e=>{if(e.isNote||e.cancelled||!e.done)return;inc[e.client]=(inc[e.client]||0)+_pn(e.price)+_pn(e.profit);}));
+  const m={};(D.clients||[]).forEach(c=>{if(!c.ref)return;const r=m[c.ref]=m[c.ref]||{ref:c.ref,n:0,inc:0};r.n++;r.inc+=inc[c.name]||0;});
+  return Object.values(m).sort((a,b)=>b.inc-a.inc);
+}
+function thankRef(ref){const c=(D.clients||[]).find(x=>x.name===ref);window.open(waLink(c&&c.phone||'',`שלום ${ref}, רציתי להגיד תודה גדולה על ההמלצה, זה ממש מעריך 🌿`),'_blank');}
+function bizCardsHtml(){
+  const fm=n=>Math.round(n).toLocaleString('he-IL'),T=tomorrowList(),H=helperTotals(),R=referralStats();
+  const card=(t,b)=>`<div class="card" style="padding:15px;"><div style="font-family:var(--head);font-size:18px;font-weight:700;margin-bottom:8px;">${t}</div>${b}</div>`;
+  let h='';
+  h+=card('הודעות ללקוחות למחר'+(T?' · '+fmtD(T.k):''),T?T.rows.map(r=>`<div style="display:flex;justify-content:space-between;align-items:center;gap:8px;padding:8px 0;border-top:1px solid var(--gray3);"><div style="min-width:0;"><b>${_esc(r.ev.client)}</b><div style="font-size:12px;color:var(--gray4);">${r.ev.time||''}</div></div><button class="chip${r.ev.msgSent?' on':''}" onclick="sendDayMsg('${T.k}',${r.i})">${ICO_WA}${r.ev.msgSent?'נשלח ✓':'שלח'}</button></div>`).join('')+'<div style="font-size:11px;color:var(--gray4);margin-top:8px;">כל לחיצה פותחת וואטסאפ עם ההודעה מוכנה. אפשר לערוך נוסח בהגדרות.</div>':'<div style="font-size:13px;color:var(--gray4);">אין ביקורים בשבוע הקרוב</div>');
+  const my=(D.settings&&D.settings.myRate)||'';
+  h+=card('הצעת מחיר לעבודה חד פעמית',`<div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;"><input id="q-n" placeholder="שם לקוח (אופציונלי)" list="q-dl" style="grid-column:1/-1;padding:8px;border:1.5px solid var(--gray3);border-radius:10px;background:var(--card);color:var(--gray);font-family:inherit;"><datalist id="q-dl">${(D.clients||[]).map(c=>`<option value="${_esc(c.name)}">`).join('')}</datalist>${[['q-h','שעות עבודה',''],['q-r','תעריף לשעה ₪',my],['q-m','עלות חומרים ₪',''],['q-k','רווח על חומרים %','20']].map(f=>`<input id="${f[0]}" type="number" placeholder="${f[1]}" value="${f[2]}" oninput="quoteCalc()" style="padding:8px;border:1.5px solid var(--gray3);border-radius:10px;background:var(--card);color:var(--gray);font-family:inherit;">`).join('')}</div><div style="margin-top:10px;font-family:var(--head);font-size:26px;font-weight:800;color:var(--green);" id="q-out"></div><div style="font-size:12px;color:var(--gray4);" id="q-det"></div><button class="chip" style="margin-top:8px;" onclick="sendQuote()">${ICO_WA}שלח הצעה בוואטסאפ</button>`);
+  h+=card('עוזר',`<div style="display:flex;justify-content:space-between;"><div><div class="stat-l">השבוע</div><div class="rep-big">${H.w} שע׳</div><div style="font-size:12px;color:var(--gray4);">${H.rate?fm(H.w*H.rate)+' ₪':'קבע תעריף בהגדרות'}</div></div><div><div class="stat-l">החודש</div><div class="rep-big">${H.m} שע׳</div><div style="font-size:12px;color:var(--gray4);">${H.rate?fm(H.m*H.rate)+' ₪':''}</div></div></div><div style="font-size:11px;color:var(--gray4);margin-top:8px;">את שעות העוזר מזינים בעריכת ביקור</div>`);
+  h+=card('מי מביא לך לקוחות',R.length?R.map(r=>`<div style="display:flex;justify-content:space-between;align-items:center;gap:8px;padding:8px 0;border-top:1px solid var(--gray3);"><div><b>${_esc(r.ref)}</b><div style="font-size:12px;color:var(--gray4);">${r.n} לקוחות · ${fm(r.inc)} ₪</div></div><button class="chip" onclick="thankRef('${_esc(r.ref).replace(/'/g,"\\'")}')">${ICO_WA}תודה</button></div>`).join(''):'<div style="font-size:13px;color:var(--gray4);">מלא "הגיע דרך" בכרטיס הלקוח כדי לראות מי ממליץ</div>');
+  return h;
+}
+
+// ═══════════════ SMART ROUTE ORDER ═══════════════
+function setHome(){D.settings=D.settings||{};D.settings.home=document.getElementById('set-home').value.trim();saveData();toast('נשמר');}
+let _route=null;
+function bestOrder(d,n,hasHome){
+  const first=j=>hasHome?d[0][j+1]:0,off=hasHome?1:0,leg=(a,b)=>d[a+off][b+off];
+  let best=null,bc=Infinity;
+  if(n<=8){
+    const used=Array(n).fill(false),cur=[];
+    (function rec(c){if(c>=bc)return;if(cur.length===n){bc=c;best=cur.slice();return;}
+      for(let j=0;j<n;j++){if(used[j])continue;const add=cur.length?leg(cur[cur.length-1],j):first(j);used[j]=true;cur.push(j);rec(c+add);cur.pop();used[j]=false;}})(0);
+  }else{
+    for(let st=0;st<n;st++){const o=[st],u=new Set(o);while(o.length<n){let b=-1,bd=Infinity;for(let j=0;j<n;j++)if(!u.has(j)&&leg(o[o.length-1],j)<bd){bd=leg(o[o.length-1],j);b=j;}o.push(b);u.add(b);}
+      const cost=x=>(hasHome?first(x[0]):0)+x.slice(1).reduce((t,v,i)=>t+leg(x[i],v),0);
+      let imp=true;while(imp){imp=false;for(let i=0;i<n-1;i++)for(let k=i+1;k<n;k++){const t=o.slice(0,i).concat(o.slice(i,k+1).reverse(),o.slice(k+1));if(cost(t)<cost(o)-1e-9){o.splice(0,n,...t);imp=true;}}}
+      const c=cost(o);if(c<bc){bc=c;best=o.slice();}}
+  }
+  return {order:best,cost:bc};
+}
+async function smartRoute(key){
+  const evs=D.cal[key]||[];
+  const idx=evs.map((e,i)=>(!e.isNote&&!e.cancelled&&!e.done)?i:-1).filter(i=>i>=0);
+  if(idx.length<2){toast('צריך לפחות שני ביקורים שלא בוצעו');return;}
+  const miss=idx.filter(i=>!clientAddr(evs[i])).map(i=>evs[i].client);
+  if(miss.length){toast('חסרה כתובת: '+[...new Set(miss)].join(', '));return;}
+  toast('מחשב את המסלול הקצר ביותר…');
+  try{
+    const home=D.settings&&D.settings.home;const addrs=(home?[home]:[]).concat(idx.map(i=>clientAddr(evs[i])));
+    const pts=[];for(const a of addrs)pts.push(await geoAddr(a));
+    const j=await _jget('https://router.project-osrm.org/table/v1/driving/'+pts.map(p=>p.lon+','+p.lat).join(';')+'?annotations=duration');
+    const d=j.durations.map(r=>r.map(v=>(v==null?1e6:v)/60));
+    const n=idx.length,off=home?1:0,leg=(a,b)=>d[a+off][b+off];
+    const cost=o=>(home?d[0][o[0]+1]:0)+o.slice(1).reduce((t,v,i)=>t+leg(o[i],v),0);
+    const cur=idx.map((_,i)=>i),b=bestOrder(d,n,!!home);
+    _route={key,idx,order:b.order};
+    const saved=Math.round(cost(cur)-b.cost);
+    let h=`<div style="font-size:13px;color:var(--gray4);margin-bottom:10px;">${home?'המסלול מתחיל מהבית. ':''}זמני נסיעה בלי עומס (הערכה). אחרי ההחלה אפשר ללחוץ "חשב נסיעות" לחישוב עם עומס.</div>`;
+    h+=b.order.map((o,k)=>`<div class="plan-row"><div><b>${k+1}. ${_esc(evs[idx[o]].client)}</b><small>${_esc(clientAddr(evs[idx[o]]))}</small></div><div style="font-weight:800;white-space:nowrap;">${k?Math.round(leg(b.order[k-1],o))+' דק׳':(home?Math.round(d[0][o+1])+' דק׳ מהבית':'התחלה')}</div></div>`).join('');
+    h+=`<div class="day-sum" style="margin-top:10px;"><div><b>${saved>0?'חוסך כ-'+saved+' דק׳ נסיעה':'הסדר הנוכחי כבר הקצר ביותר'}</b><span>סה״כ נסיעה ${Math.round(b.cost)} דק׳ במקום ${Math.round(cost(cur))}</span></div></div>`;
+    document.getElementById('rt2-body').innerHTML=h;openM('m-route');
+  }catch(e){toast('לא הצלחתי לחשב מסלול. בדוק כתובות וחיבור');}
+}
+function applyRoute(){
+  if(!_route)return;const {key,idx,order}=_route,evs=D.cal[key];
+  const moved=order.map(o=>evs[idx[o]]);idx.forEach((i,k)=>{evs[i]=moved[k];});
+  evs.forEach(e=>{delete e.travel;delete e.travelFrom;delete e.travelKm;});
+  chainDay(key,true);saveData();closeM('m-route');renderCal();try{renderDash();}catch(e){}
+  const q=key.split('-'),sel=document.querySelector('.cd.selected');
+  if(sel)showDay(key,parseInt(q[2]),parseInt(q[1])-1,parseInt(q[0]),sel);
+  toast('הסדר עודכן. מסיים בערך ב-'+_fmin(dayTimeline(key).end));_route=null;
+}
 function clearTravel(key){
   (D.cal[key]||[]).forEach(e=>{delete e.travel;delete e.travelFrom;delete e.travelKm;});
   chainDay(key);saveData();renderCal();try{renderDash();}catch(e){}
@@ -2050,6 +2175,7 @@ function renderInsights(){
   }
   D.season=D.season||{};
   h+=`<div class="card" style="padding:15px;"><div style="font-family:var(--head);font-size:18px;font-weight:700;margin-bottom:6px;">מה לעשות ב${MONTHS[mo-1]}</div>`+SEASON[mo].map((t,i)=>{const k=now.getFullYear()+'-'+mo+'-'+i;return `<label style="display:flex;gap:10px;align-items:center;padding:8px 0;border-top:1px solid var(--gray3);"><input type="checkbox" ${D.season[k]?'checked':''} onchange="seasonTog('${k}')"><span style="${D.season[k]?'text-decoration:line-through;opacity:.6':''}">${t}</span></label>`;}).join('')+`<div style="font-size:12px;color:var(--gray4);margin-top:8px;">בחודש הבא: ${SEASON[mo%12+1].join(', ')}</div></div>`;
+  h=bizCardsHtml()+h;
   el.innerHTML=h;
   wxFetch().then(c=>{
     const r=document.getElementById('wx-rows');if(!r)return;
@@ -2292,7 +2418,7 @@ function addClient(){
   if(!name||!phone){toast('מלא שם וטלפון');return;}
   const fixed=document.getElementById('nc-fixed').value.replace(/[^0-9]/g,'')||'';
   const freq=parseInt(document.getElementById('nc-freq').value)||1;
-  D.clients.unshift({id:Date.now(),name,phone,addr:document.getElementById('nc-addr').value,type:document.getElementById('nc-type').value,fixed,freq,dur:parseInt(document.getElementById('nc-dur').value)||60,notes:document.getElementById('nc-notes').value,debt:0});
+  D.clients.unshift({id:Date.now(),name,phone,addr:document.getElementById('nc-addr').value,type:document.getElementById('nc-type').value,fixed,freq,dur:parseInt(document.getElementById('nc-dur').value)||60,ref:document.getElementById('nc-ref').value.trim(),notes:document.getElementById('nc-notes').value,debt:0});
   saveData();renderClients();closeM('m-client');toast('👤 לקוח נוסף!');
   ['nc-name','nc-phone','nc-addr','nc-fixed','nc-notes'].forEach(id=>document.getElementById(id).value='');
 }
@@ -2310,6 +2436,7 @@ function openEditClient(id){
   document.getElementById('ec-freq').value = c.freq||1;
   document.getElementById('ec-dur').value = c.dur||60;
   document.getElementById('ec-notes').value = c.notes||'';
+  document.getElementById('ec-ref').value = c.ref||'';
   openM('m-edit-client');
 }
 
@@ -2328,6 +2455,7 @@ function saveEditClient(){
   c.freq = parseInt(document.getElementById('ec-freq').value)||1;
   c.dur = parseInt(document.getElementById('ec-dur').value)||60;
   c.notes = document.getElementById('ec-notes').value;
+  c.ref = document.getElementById('ec-ref').value.trim();
   // Update name in calendar events if name changed
   if(oldName !== name){
     Object.values(D.cal||{}).forEach(evs=>{
@@ -3261,6 +3389,7 @@ function openEditVisit(key,i){
   document.getElementById('ev-edit-client').value=ev.client||'';
   document.getElementById('ev-edit-date').value=key;
   document.getElementById('ev-edit-time').value=ev.time||'09:00';
+  document.getElementById('ev-edit-help').value=ev.helpH||'';
   document.getElementById('ev-edit-dur').value=evDur(ev);
   document.getElementById('ev-edit-price').value=ev.price||'';
   document.getElementById('ev-edit-materials').value=ev.materials||'';
@@ -3280,6 +3409,7 @@ function saveEditVisit(){
   ev.profit=document.getElementById('ev-edit-profit').value;
   ev.desc=document.getElementById('ev-edit-desc').value;
   ev.notes=document.getElementById('ev-edit-notes').value;
+  ev.helpH=parseFloat(document.getElementById('ev-edit-help').value)||0;
   if(autoChainOn()){sortDayByTime(_editVisitKey);chainDay(_editVisitKey);}
   saveData();renderCal();updateStats();renderDash();
   closeM('m-edit-visit');
