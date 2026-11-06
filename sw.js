@@ -1,4 +1,4 @@
-const CACHE = 'ginon-v15';
+const CACHE = 'ginon-v16';
 self.addEventListener('install', e => { self.skipWaiting(); });
 self.addEventListener('activate', e => {
   e.waitUntil(caches.keys().then(k => Promise.all(k.map(c => caches.delete(c)))));

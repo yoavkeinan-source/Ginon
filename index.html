@@ -787,6 +787,9 @@ body{transition:background .3s,color .3s;}
         <div style="padding:14px 15px;">
           <div class="trow"><div class="tinfo"><h4>אימות חשבונית לפני תשלום</h4><p>חובה לסמן חשבונית לפני שולם</p></div><label class="tog"><input type="checkbox" checked id="tog-inv"><span class="tsl"></span></label></div>
           <div class="trow"><div class="tinfo"><h4>סנכרון מייל — סימון תשלום</h4><p>כשמגיע אישור מייל — מסמן שולם</p></div><label class="tog"><input type="checkbox" checked><span class="tsl"></span></label></div>
+          <div class="trow"><div class="tinfo"><h4>שעת התחלה ברירת מחדל</h4><p>היום מתחיל בשעה הזו, וכל לקוח מחושב אחרי הקודם</p></div><input type="time" id="set-start" onchange="setWorkPref()" style="padding:8px;border:1.5px solid var(--gray3);border-radius:10px;font-family:'Heebo',sans-serif;background:var(--card);color:var(--gray);"></div>
+          <div class="trow"><div class="tinfo"><h4>הפרש בין לקוחות (דקות)</h4><p>זמן נסיעה והפסקה בין לקוח ללקוח</p></div><input type="number" id="set-gap" min="0" step="5" onchange="setWorkPref()" style="width:80px;padding:8px;border:1.5px solid var(--gray3);border-radius:10px;font-family:'Heebo',sans-serif;background:var(--card);color:var(--gray);"></div>
+          <div class="trow"><div class="tinfo"><h4>חישוב שעות אוטומטי</h4><p>בכל הוספה, עריכה או הזזה השעות מתעדכנות לפי הסדר</p></div><select id="set-auto" onchange="setWorkPref()" style="padding:8px;border:1.5px solid var(--gray3);border-radius:10px;font-family:'Heebo',sans-serif;background:var(--card);color:var(--gray);"><option value="1">פעיל</option><option value="0">כבוי</option></select></div>
           <div class="trow"><div class="tinfo"><h4>סוג עוסק</h4><p>מורשה: מוצג בדוחות גם סכום המע"מ (18%) שכלול במחירים</p></div><select id="vat-sel" onchange="setVatMode(this.value)" style="padding:8px;border:1.5px solid var(--gray3);border-radius:10px;font-family:'Heebo',sans-serif;background:var(--card);color:var(--gray);"><option value="exempt">עוסק פטור</option><option value="licensed">עוסק מורשה</option></select></div>
           <div style="margin-top:12px;">
             <div class="fi" style="margin-bottom:10px;"><label>הטלפון שלי</label><input type="tel" id="my-phone" placeholder="05X-XXXXXXX"></div>
@@ -1606,7 +1609,7 @@ function buildAutoPlan(){
       load[key]=(load[key]||0)+1;mine.push(best);
       // time: next free slot
       let t=c.time||'';
-      if(!t){let cur=8*60;const gap=(D.settings&&D.settings.gap!=null)?D.settings.gap:15;
+      if(!t){let cur=dayStartMin();const gap=gapMin();
         (D.cal[key]||[]).filter(e=>!e.isNote&&!e.cancelled).concat(plan.filter(x=>x.date===key).map(x=>({client:x.name,time:x.time,dur:x.dur}))).forEach(e=>{const st=_tmin(e.time);if(st!=null)cur=Math.max(cur,st+evDur(e)+gap);});
         t=_fmin(cur);}
       plan.push({name:c.name,date:key,time:t,dur:c.dur||60,price:c.fixed?String(c.fixed).replace(/[^0-9.]/g,''):'',phone:c.phone||''});
@@ -1640,6 +1643,7 @@ function confirmAutoPlan(){
     if(D.cal[x.date].some(e=>!e.isNote&&e.client===x.name))return;
     D.cal[x.date].push({client:x.name,desc:'',time:x.time,dur:x.dur,price:x.price,phone:x.phone,done:false,paid:false,isNote:false,cancelled:false});
   });
+  const _ks=[...new Set(_autoPlan.map(x=>x.date))];_ks.forEach(k=>chainDay(k));
   const n=_autoPlan.length;_autoPlan=[];
   saveData();renderCal();updateStats();renderDash();closeM('m-planner');toast(`שובצו ${n} ביקורים`);
 }
@@ -1791,6 +1795,7 @@ function moveVisitTo(sk,si,dk,beforeIdx){
   else if(pt!=null)t=pt+60;
   if(t!=null)ev.time=_fmin(t);
   dst.splice(pos,0,ev);
+  chainDay(dk);if(sk!==dk&&D.cal[sk])chainDay(sk);
   moveState=null;document.body.classList.remove('moving');const b=document.getElementById('move-bar');if(b)b.className='';
   saveData();renderCal();updateStats();renderDash();try{renderWeek();}catch(e){}
   const dt=new Date(dk),off=dt.getDay()===6||HOLIDAYS[dk];
@@ -1823,6 +1828,27 @@ function undoMove(){
 })();
 
 
+
+// ═══════════════ DAY START / AUTO CHAIN ═══════════════
+function dayStartMin(){return _tmin((D.settings&&D.settings.dayStart)||'07:00')??420;}
+function gapMin(){return (D.settings&&D.settings.gap!=null)?D.settings.gap:15;}
+function autoChainOn(){return !(D.settings&&D.settings.auto===false);}
+function loadWorkPref(){const a=document.getElementById('set-start');if(!a)return;a.value=_fmin(dayStartMin());document.getElementById('set-gap').value=gapMin();document.getElementById('set-auto').value=autoChainOn()?'1':'0';}
+function setWorkPref(){D.settings=D.settings||{};D.settings.dayStart=document.getElementById('set-start').value||'07:00';D.settings.gap=Math.max(0,parseInt(document.getElementById('set-gap').value)||0);D.settings.auto=document.getElementById('set-auto').value==='1';
+  if(D.settings.auto)Object.keys(D.cal).forEach(k=>chainDay(k,true));
+  saveData();try{renderCal();renderDash();}catch(e){}toast('נשמר');}
+function sortDayByTime(key){
+  const arr=D.cal[key]||[];const idx=[],vis=[];
+  arr.forEach((e,i)=>{if(!e.isNote){idx.push(i);vis.push(e);}});
+  vis.sort((a,b)=>(_tmin(a.time)??1e4)-(_tmin(b.time)??1e4));
+  idx.forEach((i,j)=>{arr[i]=vis[j];});
+}
+function chainDay(key,force){
+  if(!force&&!autoChainOn())return;
+  let cur=dayStartMin();const gap=gapMin();
+  (D.cal[key]||[]).forEach(ev=>{if(ev.isNote||ev.cancelled)return;ev.time=_fmin(cur);cur+=evDur(ev)+gap;});
+}
+
 // ═══════════════ WORK DURATION / FINISH TIME ═══════════════
 const DUR_LIST=[30,45,60,75,90,105,120,150,180,210,240,300,360,480];
 function fmtDur(m){const h=Math.floor(m/60),mm=m%60;return (h?h+' שע׳':'')+(h&&mm?' ':'')+(mm?mm+' דק׳':'');}
@@ -1845,7 +1871,7 @@ function daySummaryHtml(key){
 let _retimeKey=null;
 function openRetime(key){
   _retimeKey=key;const tl=dayTimeline(key);
-  document.getElementById('rt-start').value=tl.start!=null?_fmin(tl.start):'08:00';
+  document.getElementById('rt-start').value=_fmin(dayStartMin());
   document.getElementById('rt-gap').value=(D.settings&&D.settings.gap!=null)?D.settings.gap:15;
   previewRetime();openM('m-retime');
 }
@@ -1854,7 +1880,7 @@ function retimePlan(){
   const gap=Math.max(0,parseInt(document.getElementById('rt-gap').value)||0);
   let cur=start;const out=[];
   (D.cal[_retimeKey]||[]).forEach((ev,i)=>{if(ev.isNote||ev.cancelled)return;const d=evDur(ev);out.push({ev,i,s:cur,e:cur+d});cur+=d+gap;});
-  return {out,gap,end:out.length?out[out.length-1].e:null};
+  return {out,gap,start,end:out.length?out[out.length-1].e:null};
 }
 function previewRetime(){
   const p=retimePlan();
@@ -1886,7 +1912,7 @@ function nav(id,el){
   if(id==='dash'){renderDash();updateStats();}
   if(id==='reports')renderReports();
   if(id==='plan')renderPlan();
-  if(id==='settings'){const v=document.getElementById('vat-sel');if(v)v.value=vatMode();}
+  if(id==='settings'){const v=document.getElementById('vat-sel');if(v)v.value=vatMode();loadWorkPref();}
   if(id!=='cal'){closeDayPanel();if(moveState)cancelMove();}
 }
 
@@ -2517,6 +2543,7 @@ function quickSchedule(name, date, price, phone){
   if(D.cal[date].some(e=>!e.isNote&&e.client===name)){toast(`${name} כבר שובץ ביום זה`);return;}
   const c=D.clients.find(x=>x.name===name);
   D.cal[date].push({client:name,desc:'',time:c&&c.time?c.time:'09:00',price:price||'',phone:phone||'',done:false,paid:false,isNote:false,cancelled:false});
+  chainDay(date);
   saveData();renderCal();updateStats();
   const parts=date.split('-');
   toast(`✅ ${name} שובץ ל-${parseInt(parts[2])} ${MONTHS[parseInt(parts[1])-1]}!`);
@@ -2649,6 +2676,7 @@ function saveEvent(){
     done:false,paid:false,isNote:false
   });
   if(note){D.cal[date].push({client:note,isNote:true,time:'',price:'',done:false,paid:false});}
+  if(autoChainOn()){sortDayByTime(date);chainDay(date);}
   saveData();closeM('m-event');renderCal();updateStats();renderDash();toast('📅 ביקור נוסף!');
   document.getElementById('ev-sel').value='';document.getElementById('ev-name').value='';
   document.getElementById('ev-price').value='';document.getElementById('ev-desc').value='';document.getElementById('ev-note').value='';
@@ -3085,6 +3113,7 @@ function saveEditVisit(){
   ev.profit=document.getElementById('ev-edit-profit').value;
   ev.desc=document.getElementById('ev-edit-desc').value;
   ev.notes=document.getElementById('ev-edit-notes').value;
+  if(autoChainOn()){sortDayByTime(_editVisitKey);chainDay(_editVisitKey);}
   saveData();renderCal();updateStats();renderDash();
   closeM('m-edit-visit');
   const parts=_editVisitKey.split('-');
