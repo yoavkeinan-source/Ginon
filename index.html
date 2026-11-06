@@ -1851,7 +1851,8 @@ function chainDay(key,force){
 }
 
 // ═══════════════ WORK DURATION / FINISH TIME ═══════════════
-const DUR_LIST=[30,45,60,75,90,105,120,150,180,210,240,300,360,480];
+const DUR_LIST=[30,45,60,75,90,105,120,150,180,210,240,300,360,420,480,540,600,660,720,780,840];
+(function(){['nc-dur','ec-dur','ev-dur','ev-edit-dur'].forEach(id=>{const e=document.getElementById(id);if(e)e.innerHTML=DUR_OPTS(60);});})();
 function fmtDur(m){const h=Math.floor(m/60),mm=m%60;return (h?h+' שע׳':'')+(h&&mm?' ':'')+(mm?mm+' דק׳':'');}
 function DUR_OPTS(sel){const arr=DUR_LIST.includes(+sel)?DUR_LIST:DUR_LIST.concat([+sel]).sort((a,b)=>a-b);return arr.map(m=>`<option value="${m}"${m==sel?' selected':''}>${fmtDur(m)}</option>`).join('');}
 function evDur(ev){
