@@ -468,6 +468,7 @@ body.moving .cd .ce[data-k]:not(.sel):hover{outline:2px dashed var(--green);}
 #move-bar button{border:1px solid color-mix(in srgb,var(--onacc) 55%,transparent);background:none;color:var(--onacc);border-radius:12px;padding:8px 14px;font-family:'Heebo',sans-serif;font-weight:700;cursor:pointer;}
 
 /* DURATION */
+.dur-q{font-family:inherit;appearance:auto;}
 .day-sum{display:flex;align-items:center;justify-content:space-between;gap:10px;background:var(--green3);color:var(--green);padding:11px 14px;}
 .day-sum b{display:block;font-family:var(--head);font-size:17px;}
 .day-sum span{font-size:12px;opacity:.85;}
@@ -1857,6 +1858,13 @@ function evDur(ev){
   const d=parseInt(ev&&ev.dur);if(d>0)return d;
   const c=(D.clients||[]).find(x=>x.name===(ev&&ev.client));return (c&&parseInt(c.dur)>0)?parseInt(c.dur):60;
 }
+function setVisitDur(key,i,v){
+  const ev=D.cal[key]&&D.cal[key][i];if(!ev)return;
+  ev.dur=parseInt(v)||60;chainDay(key);saveData();renderCal();try{renderDash();}catch(e){}
+  const q=key.split('-'),sel=document.querySelector('.cd.selected');
+  if(sel)showDay(key,parseInt(q[2]),parseInt(q[1])-1,parseInt(q[0]),sel);
+  toast('זמן העבודה עודכן לביקור הזה בלבד');
+}
 function updClientDur(id,v){const c=D.clients.find(x=>x.id===id);if(!c)return;c.dur=parseInt(v)||60;saveData();toast('זמן העבודה עודכן');}
 function dayTimeline(key){
   const items=(D.cal[key]||[]).filter(e=>!e.isNote&&!e.cancelled).map(ev=>{const st=_tmin(ev.time);return {ev,s:st,e:st!=null?st+evDur(ev):null};});
@@ -2299,6 +2307,7 @@ function showDay(key,d,m,y,el){
           <button class="sbtn paid ${ev.paid?'on':''}" onclick="togVisit('${key}',${i},'paid',this)">${ev.paid?'✓ שולם':'שולם'}</button>
           <button class="sbtn" onclick="wazeVisit('${key}',${i})">${ICO_PIN}ניווט</button>
           <button class="sbtn" onclick="openWADirect('${ev.phone||''}','${ev.client}','visit')">${ICO_WA}הודעה</button>
+          ${ev.cancelled?'':`<select class="sbtn dur-q" title="זמן עבודה לביקור הזה בלבד" onchange="setVisitDur('${key}',${i},this.value)">${DUR_OPTS(evDur(ev))}</select>`}
           <button class="sbtn" onclick="openEditVisit('${key}',${i})">${ICO_EDIT}עריכה</button>
           <button class="sbtn" onclick="openMoveVisit('${key}',${i})">${ICO_MOVE}הזז</button>
           <button class="sbtn warn" onclick="cancelVisit('${key}',${i})">${ev.cancelled?'בטל ביטול':'בטל ביקור'}</button>
