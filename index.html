@@ -1804,8 +1804,17 @@ function showMoveBar(){
   const ev=(D.cal[moveState.k]||[])[moveState.i];if(!ev)return;
   let b=document.getElementById('move-bar');
   if(!b){b=document.createElement('div');b.id='move-bar';document.body.appendChild(b);}
-  b.innerHTML=`<div><b>${_esc(ev.client)}</b><span>הקש על יום להעברה, או על לקוח כדי להכניס לפניו</span></div><button onclick="cancelMove()">ביטול</button>`;
+  b.innerHTML=`<div><b>${_esc(ev.client)}</b><span>הקש על יום להעברה, או על לקוח כדי להכניס לפניו</span></div><button onclick="quickDelete()" style="background:var(--red);color:#fff;">מחק</button><button onclick="cancelMove()">ביטול</button>`;
   b.className='on';
+}
+function quickDelete(){
+  if(!moveState)return;const {k,i}=moveState,evs=D.cal[k];const ev=evs&&evs[i];if(!ev)return;
+  _undoMove={sk:k,dk:k,a:JSON.stringify(evs),b:JSON.stringify(evs)};
+  evs.splice(i,1);if(!evs.some(e=>!e.isNote)&&!evs.length)delete D.cal[k];
+  if(D.cal[k]&&autoChainOn())chainDay(k);
+  moveState=null;document.body.classList.remove('moving');const b=document.getElementById('move-bar');if(b)b.className='';
+  saveData();renderCal();updateStats();renderDash();try{renderWeek();}catch(e){}
+  showUndoToast(`${ev.client} נמחק מהלוז`);
 }
 function cancelMove(){moveState=null;document.body.classList.remove('moving');const b=document.getElementById('move-bar');if(b)b.className='';renderCal();}
 function _tmin(t){if(!t)return null;const a=String(t).split(':');return (+a[0])*60+(+a[1]||0);}
@@ -1845,7 +1854,7 @@ function undoMove(){
   if(u.a==='null')delete D.cal[u.sk];else D.cal[u.sk]=JSON.parse(u.a);
   if(u.dk!==u.sk){if(u.b==='null')delete D.cal[u.dk];else D.cal[u.dk]=JSON.parse(u.b);}
   saveData();renderCal();updateStats();renderDash();try{renderWeek();}catch(e){}
-  const el=document.getElementById('toast-el');el.classList.remove('on');el.style.pointerEvents='';toast('ההעברה בוטלה');
+  const el=document.getElementById('toast-el');el.classList.remove('on');el.style.pointerEvents='';toast('הפעולה בוטלה');
 }
 // desktop drag & drop
 (function(){
