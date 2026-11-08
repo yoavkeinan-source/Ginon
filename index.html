@@ -2104,6 +2104,16 @@ function shopTog(id){const x=(D.shop||[]).find(y=>y.id===id);if(x){x.done=!x.don
 function shopDel(id){D.shop=(D.shop||[]).filter(y=>y.id!==id);saveData();renderShop();}
 function shopClear(){D.shop=(D.shop||[]).filter(y=>!y.done);saveData();renderShop();toast('נמחקו הפריטים שנקנו');}
 
+// ═══════════════ LIVE REFRESH OF OPEN DAY PANEL ═══════════════
+function refreshOpenDay(){
+  const k=window._selDate,p=document.getElementById('day-panel');
+  if(!k||!p||!p.classList.contains('open'))return;
+  const el=document.querySelector('.cd[data-key="'+k+'"]');if(!el)return;
+  const b=document.getElementById('dp-body'),st=[p.scrollTop,b?b.scrollTop:0];
+  const q=k.split('-');showDay(k,+q[2],+q[1]-1,+q[0],el);
+  p.scrollTop=st[0];if(b)b.scrollTop=st[1];
+}
+(function(){const _rc=renderCal;renderCal=function(){const r=_rc.apply(this,arguments);try{refreshOpenDay();}catch(e){}return r;};})();
 // ═══════════════ SMART ROUTE ORDER ═══════════════
 function setHome(){D.settings=D.settings||{};D.settings.home=document.getElementById('set-home').value.trim();saveData();toast('נשמר');}
 let _route=null;
@@ -2514,7 +2524,7 @@ function saveEditClient(){
 }
 
 function delClient(id){if(!confirm('למחוק לקוח זה?'))return;D.clients=D.clients.filter(c=>c.id!==id);saveData();renderClients();toast('🗑 נמחק');}
-function updClientFixed(id,v){const c=D.clients.find(x=>x.id===id);if(c){c.fixed=v.replace(/[^0-9]/g,'');saveData();}}
+function updClientFixed(id,v){const c=D.clients.find(x=>x.id===id);if(c){c.fixed=v.replace(/[^0-9]/g,'');saveData();try{renderCal();renderClientsStats();}catch(e){}}}
 let _cf='all',_cq='';
 function isRegular(c){return c.type!=='חד פעמי';}
 function filterClients(v){
