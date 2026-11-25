@@ -609,6 +609,7 @@ body{transition:background .3s,color .3s;}
           <div style="text-align:center;"><div style="font-size:18px;font-weight:900;color:var(--red);" id="cal-visits">0</div><div style="font-size:10px;color:var(--gray4);">ביקורים</div></div>
           <div style="text-align:center;"><div style="font-size:18px;font-weight:900;color:var(--red);" id="cal-cancelled">0</div><div style="font-size:10px;color:var(--gray4);">בוטלו</div></div>
           <div style="text-align:center;"><div style="font-size:18px;font-weight:900;color:var(--amber);" id="cal-unpaid">0 ₪</div><div style="font-size:10px;color:var(--gray4);">לא שולם</div></div>
+          <div style="text-align:center;grid-column:span 2;"><div style="font-size:18px;font-weight:900;color:var(--gray);" id="cal-gross">0 ₪</div><div style="font-size:10px;color:var(--gray4);">ברוטו לתשלום (כולל חומרים)</div></div>
           <div style="text-align:center;"><div style="font-size:18px;font-weight:900;color:var(--red);" id="cal-workers">0 ₪</div><div style="font-size:10px;color:var(--gray4);">עלות עובדים</div></div>
           <div style="text-align:center;grid-column:span 2;"><div style="font-size:18px;font-weight:900;color:var(--green);" id="cal-net">0 ₪</div><div style="font-size:10px;color:var(--gray4);">נטו (נכנס פחות עובדים)</div></div>
         </div>
@@ -1010,6 +1011,7 @@ body{transition:background .3s,color .3s;}
   <div class="mb" id="pd-b"></div>
 </div></div>
 
+<div class="ov" id="m-bill"><div class="modal"><div class="mh"><h3 id="bill-title">תיק לקוח</h3><button class="mc" onclick="closeM('m-bill')">×</button></div><div class="mb" id="bill-body"></div></div></div>
 <div class="ov" id="m-ccard"><div class="modal"><div class="mh"><h3 id="cc-title">לקוח</h3><button class="mc" onclick="closeM('m-ccard')">×</button></div><div class="mb" id="cc-body"></div></div></div>
 <div class="ov" id="m-plan"><div class="modal">
   <div class="mh"><h3 id="pl-title">פריט חדש</h3><button class="mc" onclick="closeM('m-plan')">×</button></div>
@@ -1452,7 +1454,8 @@ function allVisits(){
     const amt=_num(ev.price)+_num(ev.profit);
     let st='todo';
     if(ev.cancelled)st='canc';else if(ev.paid)st='paid';else if(ev.done)st='unpaid';
-    out.push({date:k,client:ev.client||'',desc:ev.desc||'',amt,st});
+    const mat=_num(ev.materials),lab=_num(ev.price),prf=_num(ev.profit);
+    out.push({date:k,client:ev.client||'',desc:ev.desc||'',amt,st,mat,lab,prf,gross:lab+mat+prf,ev});
   }));
   return out.sort((a,b)=>b.date<a.date?-1:b.date>a.date?1:0);
 }
@@ -1463,13 +1466,13 @@ function renderReports(){
   const sum=(a,f)=>a.filter(f).reduce((s,x)=>s+x.amt,0);
   const fm=n=>Math.round(n).toLocaleString('he-IL')+' ₪';
   document.getElementById('rp-total').textContent=fm(sum(v,x=>x.st==='paid'));
-  document.getElementById('rp-unpaid').textContent=fm(sum(v,x=>x.st==='unpaid'));
+  document.getElementById('rp-unpaid').textContent=fm(v.filter(x=>x.st==='unpaid').reduce((t,x)=>t+x.gross,0));
   const vb=document.getElementById('rp-vat');if(vb){vb.style.display=vatMode()==='licensed'?'':'none';const t=sum(v,x=>x.st==='paid');document.getElementById('rp-vatv').textContent=fm(t*VAT_RATE/(1+VAT_RATE))+' מע"מ · '+fm(t/(1+VAT_RATE))+' לפני מע"מ';}
   document.getElementById('rp-visits').textContent=v.filter(x=>x.st==='paid'||x.st==='unpaid').length;
   document.getElementById('rp-canc').textContent=v.filter(x=>x.st==='canc').length;
   const months={};
   v.forEach(x=>{const m=x.date.slice(0,7);(months[m]=months[m]||{p:0,u:0,n:0});
-    if(x.st==='paid')months[m].p+=x.amt;if(x.st==='unpaid')months[m].u+=x.amt;if(x.st==='paid'||x.st==='unpaid')months[m].n++;});
+    if(x.st==='paid')months[m].p+=x.amt;if(x.st==='unpaid')months[m].u+=x.gross;if(x.st==='paid'||x.st==='unpaid')months[m].n++;});
   const ms=Object.keys(months).sort().reverse();
   const mx=Math.max(1,...ms.map(m=>months[m].p));
   const MN=['ינו','פבר','מרץ','אפר','מאי','יונ','יול','אוג','ספט','אוק','נוב','דצמ'];
@@ -1477,7 +1480,7 @@ function renderReports(){
     return `<tr><td>${MN[+p[1]-1]} ${p[0]}</td><td><b>${fm(o.p)}</b></td><td>${o.u?fm(o.u):'-'}</td><td>${o.n}</td><td style="width:70px"><div class="rep-bar"><i style="width:${Math.round(o.p/mx*100)}%"></i></div></td></tr>`;}).join('')||'<tr><td colspan="5" style="text-align:center;color:var(--gray4)">אין נתונים</td></tr>';
   const cl={};
   v.forEach(x=>{if(!x.client)return;const o=(cl[x.client]=cl[x.client]||{p:0,u:0,n:0});
-    if(x.st==='paid')o.p+=x.amt;if(x.st==='unpaid')o.u+=x.amt;if(x.st==='paid'||x.st==='unpaid')o.n++;});
+    if(x.st==='paid')o.p+=x.amt;if(x.st==='unpaid')o.u+=x.gross;if(x.st==='paid'||x.st==='unpaid')o.n++;});
   document.getElementById('rp-clients').innerHTML=Object.keys(cl).sort((a,b)=>cl[b].p-cl[a].p).map(n=>`<tr><td>${n}</td><td><b>${fm(cl[n].p)}</b></td><td>${cl[n].u?fm(cl[n].u):'-'}</td><td>${cl[n].n}</td></tr>`).join('')||'<tr><td colspan="4" style="text-align:center;color:var(--gray4)">אין נתונים</td></tr>';
   // yearly chart
   const ys=[...new Set(v.map(x=>x.date.slice(0,4)).concat([String(new Date().getFullYear())]))].sort().reverse();
@@ -1578,7 +1581,7 @@ function openClientCard(id){
   const vs=allVisits().filter(v=>v.client===c.name);
   const fm=n=>Math.round(n).toLocaleString('he-IL')+' ₪';
   const paid=vs.filter(v=>v.st==='paid').reduce((s,v)=>s+v.amt,0);
-  const unpaid=vs.filter(v=>v.st==='unpaid').reduce((s,v)=>s+v.amt,0);
+  const unpaid=vs.filter(v=>v.st==='unpaid').reduce((s,v)=>s+v.gross,0);
   const n=vs.filter(v=>v.st==='paid'||v.st==='unpaid').length;
   const ph=(c.phone||'').replace(/'/g,'');const nm=c.name.replace(/'/g,"\\'");
   const addr=(c.addr||'').replace(/'/g,"\\'");
@@ -1589,6 +1592,7 @@ function openClientCard(id){
      <button class="chip" onclick="closeM('m-ccard');wazeClient(${c.id})">${ICO_PIN}ניווט</button>
      <button class="chip" onclick="openWADirect('${ph}','${nm}','visit')">📱 תזכורת ביקור</button>
      <button class="chip" onclick="openWADirect('${ph}','${nm}','debt')">📱 תזכורת תשלום</button>
+     <button class="chip" onclick="closeM('m-ccard');openBill(${c.id})">📁 תיק חיוב</button>
      <button class="chip" onclick="closeM('m-ccard');openEditClient(${c.id})">✏️ עריכה</button></div>
    ${c.addr?`<div style="font-size:13px;color:var(--gray4);margin-bottom:10px;">${c.addr}</div>`:''}
    <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin-bottom:14px;text-align:center;">
@@ -2089,9 +2093,22 @@ function bizCardsHtml(){
 
 // ═══════════════ WORKER COST PER DAY + SHOPPING LIST ═══════════════
 function monthWorkerCost(mp){return Object.entries(D.wcost||{}).reduce((t,[k,v])=>k.startsWith(mp)?t+(+v||0):t,0);}
+function monthWorkerHours(mp){return Object.entries(D.wtime||{}).reduce((t,[k,v])=>k.startsWith(mp)?t+wHours(v):t,0);}
+function wHours(t){if(!t||!t.from||!t.to)return 0;let d=_tmin(t.to)-_tmin(t.from);if(d<0)d+=1440;return d/60;}
+function fmtH(h){const m=Math.round(h*60),a=Math.floor(m/60),b=m%60;return (a?a+' שע׳':'')+(a&&b?' ו-':'')+(b?b+' דק׳':'')||'0';}
 function dayWorkerHtml(key){
-  const v=(D.wcost&&D.wcost[key])||'';
-  return `<div class="day-sum" style="background:var(--gray2);color:var(--gray);"><div><b style="font-size:15px;">עלות עובד היום</b><span>מתקזז מהנטו החודשי${v?' · החודש: '+Math.round(monthWorkerCost(key.slice(0,7))).toLocaleString('he-IL')+' ₪':''}</span></div><div style="display:flex;align-items:center;gap:5px;"><input type="number" min="0" inputmode="numeric" value="${v}" placeholder="0" onchange="setWorkerCost('${key}',this.value)" style="width:90px;padding:8px;border:1.5px solid var(--gray3);border-radius:10px;font-family:inherit;background:var(--card);color:var(--gray);font-size:15px;"><span>₪</span></div></div>`;
+  const v=(D.wcost&&D.wcost[key])||'',t=(D.wtime&&D.wtime[key])||{},h=wHours(t),mp=key.slice(0,7),mc=monthWorkerCost(mp),mh=monthWorkerHours(mp);
+  const inp='padding:7px;border:1.5px solid var(--gray3);border-radius:10px;font-family:inherit;background:var(--card);color:var(--gray);font-size:14px;';
+  return `<div class="day-sum" style="background:var(--gray2);color:var(--gray);flex-wrap:wrap;"><div><b style="font-size:15px;">עובד היום${h?' · '+fmtH(h):''}</b><span>${(mc||mh)?'החודש: '+(mh?fmtH(mh)+' · ':'')+Math.round(mc).toLocaleString('he-IL')+' ₪ · מתקזז מהנטו':'מתקזז מהנטו החודשי'}</span></div>
+  <div style="display:flex;align-items:center;gap:5px;flex-wrap:wrap;justify-content:flex-end;"><span>מ-</span><input type="time" value="${t.from||''}" onchange="setWorkerTime('${key}','from',this.value)" style="${inp}"><span>עד</span><input type="time" value="${t.to||''}" onchange="setWorkerTime('${key}','to',this.value)" style="${inp}"></div>
+  <div style="display:flex;align-items:center;gap:5px;width:100%;justify-content:flex-end;"><span>עלות</span><input type="number" min="0" inputmode="numeric" value="${v}" placeholder="0" onchange="setWorkerCost('${key}',this.value)" style="width:90px;${inp}"><span>₪</span></div></div>`;
+}
+function setWorkerTime(key,f,v){
+  D.wtime=D.wtime||{};const t=D.wtime[key]=D.wtime[key]||{};t[f]=v;
+  if(!t.from&&!t.to)delete D.wtime[key];
+  const rate=(D.settings&&D.settings.helperRate)||0,h=wHours(t);
+  if(h&&rate&&!(D.wcost&&D.wcost[key])){D.wcost=D.wcost||{};D.wcost[key]=Math.round(h*rate);toast('עלות חושבה: '+fmtH(h)+' × '+rate+' ₪');}
+  saveData();renderCal();try{renderDash();}catch(e){}
 }
 function setWorkerCost(key,v){
   D.wcost=D.wcost||{};const n=parseFloat(v)||0;if(n>0)D.wcost[key]=n;else delete D.wcost[key];
@@ -2123,6 +2140,45 @@ function refreshOpenDay(){
   p.scrollTop=st[0];if(b)b.scrollTop=st[1];
 }
 (function(){const _rc=renderCal;renderCal=function(){const r=_rc.apply(this,arguments);try{refreshOpenDay();}catch(e){}return r;};})();
+
+// ═══════════════ CLIENT BILLING FILE ═══════════════
+let _billId=null,_billPer='open',_billArm=false;
+function openBill(id,per){_billId=id;_billPer=per||'open';_billArm=false;renderBill();openM('m-bill');}
+function billRows(c){
+  const all=allVisits().filter(v=>v.client===c.name&&(v.st==='paid'||v.st==='unpaid')).sort((a,b)=>a.date<b.date?-1:1);
+  return _billPer==='open'?all.filter(v=>v.st==='unpaid'):all.filter(v=>v.date.startsWith(_billPer));
+}
+function renderBill(){
+  const c=(D.clients||[]).find(x=>x.id===_billId);if(!c)return;
+  const fm=n=>Math.round(n).toLocaleString('he-IL')+' ₪',rows=billRows(c);
+  const months=[...new Set(allVisits().filter(v=>v.client===c.name&&(v.st==='paid'||v.st==='unpaid')).map(v=>v.date.slice(0,7)))].sort().reverse();
+  const T=rows.reduce((t,v)=>({lab:t.lab+v.lab,mat:t.mat+v.mat,prf:t.prf+v.prf,gross:t.gross+v.gross}),{lab:0,mat:0,prf:0,gross:0});
+  const unp=rows.filter(v=>v.st==='unpaid').reduce((t,v)=>t+v.gross,0),old=parseFloat(c.debt||0)||0;
+  document.getElementById('bill-title').textContent='תיק חיוב · '+c.name;
+  const opt=(v,l)=>`<option value="${v}"${_billPer===v?' selected':''}>${l}</option>`;
+  let h=`<select onchange="_billPer=this.value;_billArm=false;renderBill()" style="width:100%;padding:10px;border:1.5px solid var(--gray3);border-radius:12px;background:var(--card);color:var(--gray);font-family:inherit;font-size:15px;margin-bottom:12px;">${opt('open','כל החוב הפתוח')}${months.map(m=>opt(m,'חודש '+m.slice(5)+'/'+m.slice(0,4))).join('')}</select>`;
+  h+=`<div style="background:var(--green3);color:var(--green);border-radius:16px;padding:14px;margin-bottom:12px;"><div style="font-size:12px;opacity:.85;">${_billPer==='open'?'סך הכל לתשלום (ברוטו כולל חומרים)':'חיוב ברוטו לתקופה'}</div><div style="font-family:var(--head);font-size:30px;font-weight:800;">${fm(_billPer==='open'?unp:T.gross)}</div>${_billPer!=='open'?`<div style="font-size:13px;">מתוכו שולם ${fm(T.gross-unp)} · נשאר ${fm(unp)}</div>`:''}<div style="font-size:13px;margin-top:4px;">עבודה ${fm(T.lab)} · חומרים ${fm(T.mat)} · תוספת על חומרים ${fm(T.prf)}</div></div>`;
+  if(old>0)h+=`<div style="background:var(--gray2);border-radius:12px;padding:10px 12px;margin-bottom:12px;font-size:13px;">בנוסף חוב ידני שנרשם בכרטיס הלקוח: <b>${fm(old)}</b></div>`;
+  h+=rows.length?rows.map(v=>`<div style="padding:10px 0;border-top:1px solid var(--gray3);"><div style="display:flex;justify-content:space-between;gap:8px;"><b>${fmtD(v.date)}${v.desc?' · '+_esc(v.desc):''}</b><b style="white-space:nowrap;">${fm(v.gross)}</b></div><div style="font-size:12px;color:var(--gray4);display:flex;justify-content:space-between;gap:8px;"><span>עבודה ${fm(v.lab)}${v.mat?' · חומרים '+fm(v.mat):''}${v.prf?' · תוספת '+fm(v.prf):''}</span><span style="color:${v.st==='paid'?'var(--green)':'var(--amber)'};font-weight:700;">${v.st==='paid'?'שולם':'לא שולם'}</span></div></div>`).join(''):'<div style="padding:16px;color:var(--gray4);text-align:center;">אין ביקורים בתקופה הזו</div>';
+  h+=`<div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:14px;"><button class="btn btn-g" onclick="billWA()">${ICO_WA}שלח חשבון</button><button class="chip" onclick="billCopy()">העתק</button>${unp>0?`<button class="chip" onclick="billPaidAll()" style="${_billArm?'background:var(--red);color:#fff;':''}">${_billArm?'לחץ שוב לאישור: סמן הכל שולם':'סמן הכל כשולם'}</button>`:''}</div>`;
+  document.getElementById('bill-body').innerHTML=h;
+}
+function billText(c){
+  const fm=n=>Math.round(n).toLocaleString('he-IL'),rows=billRows(c).filter(v=>_billPer!=='open'||v.st==='unpaid');
+  const unp=rows.filter(v=>v.st==='unpaid');
+  let t=`שלום ${c.name}, סיכום חשבון${_billPer==='open'?'':' לחודש '+_billPer.slice(5)+'/'+_billPer.slice(0,4)}:\n`;
+  rows.forEach(v=>{t+=`${fmtD(v.date)}${v.desc?' '+v.desc:''}: עבודה ${fm(v.lab)}${v.mat?' + חומרים '+fm(v.mat+v.prf):''} = ${fm(v.gross)} ₪${v.st==='paid'?' (שולם)':''}\n`;});
+  t+=`סה״כ לתשלום: ${fm(unp.reduce((a,v)=>a+v.gross,0))} ₪`;return t;
+}
+function billWA(){const c=D.clients.find(x=>x.id===_billId);if(c)window.open(waLink(c.phone,billText(c)),'_blank');}
+function billCopy(){const c=D.clients.find(x=>x.id===_billId);if(!c)return;try{navigator.clipboard.writeText(billText(c)).then(()=>toast('הועתק'),()=>toast('לא ניתן להעתיק'));}catch(e){toast('לא ניתן להעתיק');}}
+function billPaidAll(){
+  const c=D.clients.find(x=>x.id===_billId);if(!c)return;
+  if(!_billArm){_billArm=true;renderBill();return;}
+  const rows=billRows(c).filter(v=>v.st==='unpaid');rows.forEach(v=>{v.ev.paid=true;});
+  _billArm=false;saveData();renderCal();updateStats();renderDash();try{renderClients();}catch(e){}renderBill();toast('סומנו כשולמו: '+rows.length);
+}
+
 // ═══════════════ SMART ROUTE ORDER ═══════════════
 function setHome(){D.settings=D.settings||{};D.settings.home=document.getElementById('set-home').value.trim();saveData();toast('נשמר');}
 let _route=null;
@@ -2471,6 +2527,7 @@ function renderClients(){
       <div class="cc-acts">
         <button class="chip" onclick="wazeClient(${c.id})">${ICO_PIN}ניווט</button>
         <button class="chip" onclick="openWADirect('${ph}','${nm}','visit')">${ICO_WA}הודעה</button>
+        <button class="chip" onclick="openBill(${c.id})">${ICO_CASH}תיק חיוב</button>
         <button class="chip" onclick="openClientCard(${c.id})">${ICO_CARD}כרטיס</button>
         <button class="chip" onclick="openEditClient(${c.id})">${ICO_EDIT}עריכה</button>
         <button class="chip danger" onclick="delClient(${c.id})" aria-label="מחק">${ICO_TRASH}</button>
@@ -2595,7 +2652,7 @@ function renderCal(){
   // Compute monthly stats
   const cy=calDate.getFullYear(),cm=calDate.getMonth();
   const mp=`${cy}-${String(cm+1).padStart(2,'0')}`;
-  let inc=0,exp=0,visits=0,canc=0,unpaidCal=0;
+  let inc=0,exp=0,visits=0,canc=0,unpaidCal=0,grossM=0;
   Object.entries(D.cal||{}).forEach(([k,evs])=>{
     if(!k.startsWith(mp))return;
     evs.forEach(ev=>{
@@ -2605,7 +2662,8 @@ function renderCal(){
       const p=parseFloat((ev.price||'').toString().replace(/[^0-9.]/g,''))||0;
       const prof=parseFloat((ev.profit||'').toString().replace(/[^0-9.]/g,''))||0;
       const total=p+prof;
-      if(total>0){exp+=total;if(ev.paid)inc+=total;else if(ev.done)unpaidCal+=total;}
+      const matc=parseFloat((ev.materials||'').toString().replace(/[^0-9.]/g,''))||0;grossM+=total+matc;
+      if(total>0){exp+=total;if(ev.paid)inc+=total;else if(ev.done)unpaidCal+=total+matc;}
     });
   });
   const fmt=n=>n>0?n.toLocaleString()+' ₪':'0 ₪';
@@ -2619,6 +2677,7 @@ function renderCal(){
   if(ve)ve.textContent=visits;
   if(ce)ce.textContent=canc;
   if(ue)ue.textContent=_calStatsHidden?'••••':fmt(unpaidCal);
+  const ge=document.getElementById('cal-gross');if(ge)ge.textContent=_calStatsHidden?'••••':fmt(grossM);
   const wc=monthWorkerCost(mp),we=document.getElementById('cal-workers'),ne=document.getElementById('cal-net');
   if(we)we.textContent=_calStatsHidden?'••••':fmt(wc);
   if(ne){const nt=Math.round(inc-wc);ne.textContent=_calStatsHidden?'••••':(nt<0?'-':'')+Math.abs(nt).toLocaleString()+' ₪';ne.style.color=nt<0?'var(--red)':'var(--green)';}
