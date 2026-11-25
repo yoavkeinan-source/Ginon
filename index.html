@@ -518,9 +518,11 @@ body{transition:background .3s,color .3s;}
     <h2 id="l-h">כניסה לחשבון</h2>
     <div class="l-err" id="l-err"></div>
     <div class="l-ok" id="l-ok"></div>
-    <div class="lf"><label>אימייל</label><input type="email" id="l-email" placeholder="you@gmail.com" autocomplete="email"></div>
-    <div class="lf"><label>סיסמה</label><input type="password" id="l-pass" placeholder="••••••••" autocomplete="current-password"></div>
-    <button class="l-btn" onclick="doLogin()">🔑 כניסה</button>
+    <form id="l-form" onsubmit="event.preventDefault();doLogin();return false;" method="post" action="#">
+    <div class="lf"><label>אימייל</label><input type="email" id="l-email" name="username" placeholder="you@gmail.com" autocomplete="username" inputmode="email" autocapitalize="none"></div>
+    <div class="lf"><label>סיסמה</label><div style="position:relative;"><input type="password" id="l-pass" name="password" placeholder="••••••••" autocomplete="current-password" style="padding-inline-end:46px;"><button type="button" onclick="togglePass()" aria-label="הצג סיסמה" style="position:absolute;inset-inline-end:6px;top:50%;transform:translateY(-50%);background:none;border:none;font-size:18px;cursor:pointer;">👁</button></div></div>
+    <button class="l-btn" type="submit">🔑 כניסה</button>
+    </form>
     <div class="l-links">
       <a onclick="toggleMode()"><span id="l-mode">הרשמה חדשה</span></a>
       <a onclick="forgotPass()">שכחתי סיסמה</a>
@@ -1312,6 +1314,9 @@ const VAT=0.18;
 let calDate=new Date();let currentCat='all';let isLogin=true;let currentUser=null;
 
 // ═══════════════ AUTH ═══════════════
+try{AUTH.setPersistence(firebase.auth.Auth.Persistence.LOCAL);}catch(e){}
+try{const _le=localStorage.getItem('gp_email');if(_le)document.getElementById('l-email').value=_le;}catch(e){}
+function togglePass(){const i=document.getElementById('l-pass');i.type=i.type==='password'?'text':'password';}
 AUTH.onAuthStateChanged(user=>{
   currentUser=user;
   if(user){
@@ -1336,10 +1341,11 @@ async function doLogin(){
   clearMsg();
   if(!email||!pass){showErr('מלא אימייל וסיסמה');return;}
   try{
+    try{localStorage.setItem('gp_email',email);}catch(e){}
     if(isLogin) await AUTH.signInWithEmailAndPassword(email,pass);
     else await AUTH.createUserWithEmailAndPassword(email,pass);
   }catch(e){
-    const m={'auth/wrong-password':'סיסמה שגויה','auth/invalid-credential':'אימייל או סיסמה שגויים','auth/user-not-found':'משתמש לא קיים — לחץ הרשמה','auth/email-already-in-use':'אימייל קיים — לחץ כניסה','auth/weak-password':'סיסמה קצרה — מינימום 6 תווים','auth/invalid-email':'אימייל לא תקין'};
+    const m={'auth/too-many-requests':'יותר מדי ניסיונות. המתן כמה דקות או לחץ "שכחתי סיסמה" לאיפוס במייל','auth/network-request-failed':'אין חיבור לאינטרנט','auth/wrong-password':'סיסמה שגויה','auth/invalid-credential':'אימייל או סיסמה שגויים','auth/user-not-found':'משתמש לא קיים — לחץ הרשמה','auth/email-already-in-use':'אימייל קיים — לחץ כניסה','auth/weak-password':'סיסמה קצרה — מינימום 6 תווים','auth/invalid-email':'אימייל לא תקין'};
     showErr(m[e.code]||e.message);
   }
 }
